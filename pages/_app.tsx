@@ -5,13 +5,18 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { fontSans, fontMono } from "@/config/fonts";
 import {useRouter} from 'next/router';
 import "@/styles/globals.css";
+import Menu from "@/components/menu";
+
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
+	
+
 
 	return (
 		<NextUIProvider navigate={router.push}>
-			<NextThemesProvider>
+			<NextThemesProvider  forcedTheme="light">
+			<Menu />
 				<Component {...pageProps} />
 			</NextThemesProvider>
 		</NextUIProvider>
