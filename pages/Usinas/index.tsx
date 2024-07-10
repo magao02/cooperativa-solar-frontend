@@ -138,6 +138,7 @@ export default function App() {
   const [potenciaInstaladaUsina, setPotenciaInstaladaUsina] = useState("")
   const [potenciaNominalUsina, setPotenciaNominalUsina] = useState("")
   const [capacidadeGeracaoUsina, setCapacidadeGeracaoUsina] = useState("")
+  const [animacaoCadastro, setAnimacaoCadastro] = useState("loading")
 
 
   const [sortDescriptor, setSortDescriptor] = React.useState({
@@ -178,16 +179,15 @@ export default function App() {
 
 
   const  CadastrarUsina = async () => {
-    
+    setAnimacaoCadastro("loading");
     const usina = {
       nome: nomeUsina,
       estado: estadoUsina,
       potencialInstalada: parseInt(potenciaInstaladaUsina),
       potencialNominal: parseInt(potenciaNominalUsina),
       capacidadeGeracao: parseInt(capacidadeGeracaoUsina),
-      documentoUsuarioResponsavel: "string"
+      
     };
-    console.log(usina);
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usinas`, {
       method: 'POST',
       headers: {
@@ -197,12 +197,21 @@ export default function App() {
     });
     const data =  response.status;
     if(data ==201){
+      setAnimacaoCadastro("success");
       fetchDataUsinas();
       limparFormulario();
+
+      setTimeout(() => {
+        onOpenChange();
+        setAnimacaoCadastro("");
+      }, 1000);
     }
-    onOpenChange();
-  
-    console.log("Cadastrado");
+    else{
+      setAnimacaoCadastro("error");
+      setTimeout(() => {
+        setAnimacaoCadastro("");
+      }, 1000);
+    }
   };
   
   const limparFormulario = () => {
@@ -362,6 +371,32 @@ export default function App() {
     onRowsPerPageChange,
     
   ]);
+  const retornaAnimacaoCadastro = () => {
+    switch (animacaoCadastro) {
+      case "loading":
+        return(
+         <ModalBody>
+          <Spinner label="cadastrando usina" size="lg" />
+          </ModalBody>
+        )
+ 
+      case "success":
+        return(
+          <ModalBody>
+            <p>Usina cadastrada com sucesso!</p>
+          </ModalBody>
+        )
+
+      case "error":
+        return(
+          <ModalBody>
+            <p>Ocorreu um erro ao cadastrar a usina!</p>
+          </ModalBody>
+        )
+      default:
+        return("")
+    }
+  }
 
   if (loading) {
     return <Spinner size="lg" />;
@@ -409,7 +444,9 @@ export default function App() {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">Cadastrar Usina</ModalHeader>
-              <ModalBody>
+              {animacaoCadastro == "" ? (
+                <>
+                <ModalBody>
                 
                 <Input
                   autoFocus
@@ -476,6 +513,9 @@ export default function App() {
                   Cadastrar
                 </Button>
               </ModalFooter>
+              </>
+              ) : retornaAnimacaoCadastro()}
+              
             </>
           )}
         </ModalContent>

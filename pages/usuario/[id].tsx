@@ -179,9 +179,17 @@ export default function App() {
   }, [visibleColumns]);
 
 
-  const CadastrarUsuário = ()=>{
+  const CadastrarUsuário  = ()=>{
     //$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDAwODIyOTI6OiRhYWNoXzNmNTM4NTA2LTJjMzYtNGE3ZS1iMTE5LWY5Zjk0YTE1MjU0NA==
-    
+    const novaFatura: UserInterface = {
+      id: users.length + 1,
+      mes: "Jun/2024",
+      status: "Pendente",
+      vencimento: "23/06/2023",
+      valor: "R$257,00"
+    }
+    setUsers([...users, novaFatura]);
+    onOpenChange()
     console.log("Cadastrado")
   }
   
@@ -237,7 +245,9 @@ export default function App() {
     setFilterValue("")
     setPage(1)
   },[])
-
+  const eixe = ()=>{
+    window.open("https://sandbox.asaas.com/i/xjqzrztvorvhdb55", "_blank");
+  }
   const renderCell = React.useCallback((usina: UserInterface, columnKey:string) => {
     const cellValue = getKeyValue(usina, columnKey);
 
@@ -253,11 +263,11 @@ export default function App() {
         case "status":
           switch(cellValue){
             case "Paga":
-              return <Chip color="success"  variant="flat" >{cellValue}</Chip>
+              return <Chip color="success" variant="flat" >{cellValue}</Chip>
             case "Pendente":
-              return <Chip color="warning" variant="flat" >{cellValue}</Chip>
+              return <Chip color="warning"  onClick={eixe} variant="flat" >{cellValue}</Chip>
             case "Atrasada":
-              return <Chip color="danger" variant="flat" >{cellValue}</Chip>
+              return <Chip color="danger"  onClick={eixe} variant="flat" >{cellValue}</Chip>
           }
       case "actions":
         return (
