@@ -14,7 +14,6 @@ import {
   Dropdown,
   DropdownMenu,
   DropdownItem,
-  Chip,
   User,
 
 } from "@nextui-org/react";
@@ -33,6 +32,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
+import { getAllUsersData, getAllUsinasData, usinaCreate } from "./api";
 //Interfaces
 interface UsinaColumn {
   key: string;
@@ -133,30 +133,20 @@ export default function App() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`);
-      if (!response.ok) {
-        throw new Error('error fetching users');
-      }
-      const resultUsers = await response.json();
-      setUsers(resultUsers || [])
+      const userData = await getAllUsersData();
+      setUsers(userData || []);
     } catch (error) {
-      console.log("erro ao buscar usuários", error)
+      console.error("Erro ao buscar usuários:", error);
     }
   }
 
   const fetchDataUsinas = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usinas`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const result = await response.json();
-      console.log("USINAS", result);
-      setUsinas(result || []);
+      const usinasData = await getAllUsinasData();
+      setUsinas(usinasData || []);
     } catch (error) {
       console.error('Failed to fetch usinas:', error);
-      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -164,8 +154,6 @@ export default function App() {
 
   const hasSearchFilter = Boolean(filterValue);
   useEffect(() => {
-    // Função assíncrona para buscar dados
-
     fetchUserData();
     fetchDataUsinas();
   }, []);
@@ -183,7 +171,8 @@ export default function App() {
   const CadastrarUsina = async () => {
     setAnimacaoCadastro("loading");
 
-    const usina = {
+
+    const usinaBody = {
       usuarioResponsavel: selectedResponsavelUserId,
       nome: nomeUsina,
       localizacao: estadoUsina,
@@ -193,36 +182,19 @@ export default function App() {
     };
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usinas`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(usina)
-      });
+      const data = await usinaCreate(usinaBody);
 
-      const data = await response.json();
+      console.log('Usina cadastrada com sucesso:', data);
+      setAnimacaoCadastro("success");
+      fetchDataUsinas();
+      limparFormulario();
 
-      if (response.status === 201) {
-        console.log('Usina cadastrada com sucesso:', data);
-        setAnimacaoCadastro("success");
-        fetchDataUsinas();
-        limparFormulario();
-
-        setTimeout(() => {
-          onOpenChange();
-          setAnimacaoCadastro("");
-        }, 1000);
-      } else {
-        console.log(usina.usuarioResponsavel)
-        console.error('Erro ao cadastrar usina:', data);
-        setAnimacaoCadastro("error");
-        setTimeout(() => {
-          setAnimacaoCadastro("");
-        }, 1000);
-      }
+      setTimeout(() => {
+        onOpenChange();
+        setAnimacaoCadastro("");
+      }, 1000);
     } catch (error) {
-      console.error('Erro ao realizar requisição:', error);
+      console.error('Erro ao cadastrar usina:', error);
       setAnimacaoCadastro("error");
       setTimeout(() => {
         setAnimacaoCadastro("");
