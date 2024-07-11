@@ -15,3 +15,7 @@ export const usinaCreate = async (usinaBody: UsinaCreateRequest) => {
   const response = await api.post("/usinas", usinaBody);
   return response.data;
 }
+
+export const deleteUsina = async(id: number) => {
+  const response = await api.delete(`/usinas/${id}`)
+}

@@ -32,7 +32,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { getAllUsersData, getAllUsinasData, usinaCreate } from "./api";
+import { deleteUsina, getAllUsersData, getAllUsinasData, usinaCreate } from "./api";
 //Interfaces
 interface UsinaColumn {
   key: string;
@@ -124,12 +124,21 @@ export default function App() {
   const [capacidadeGeracaoUsina, setCapacidadeGeracaoUsina] = useState("")
   const [animacaoCadastro, setAnimacaoCadastro] = useState("")
   const [selectedResponsavelUserId, setSelectedResponsavelUserId] = useState(null);
-
+  const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
+  const [selectedUsinaId, setSelectedUsinaId] = useState<number | null>(null);
 
   const [sortDescriptor, setSortDescriptor] = React.useState({
     column: "name",
     direction: "ascending",
   });
+
+  const openDeleteConfirmationModal = () => {
+    setConfirmDeleteModalOpen(true);
+  };
+
+  const closeDeleteConfirmationModal = () => {
+    setConfirmDeleteModalOpen(false);
+  };
 
   const fetchUserData = async () => {
     try {
@@ -201,6 +210,19 @@ export default function App() {
       }, 1000);
     }
   };
+
+  const handleDeleteUsina = async (id: number) => {
+    try {
+      await deleteUsina(id);
+      fetchDataUsinas();
+    } catch (error) {
+      console.log("Erro ao excluir a usina", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataUsinas();
+  }, []);
 
   const limparFormulario = () => {
     setNomeUsina("");
@@ -283,7 +305,10 @@ export default function App() {
               </DropdownTrigger>
               <DropdownMenu>
                 <DropdownItem>Editar</DropdownItem>
-                <DropdownItem>Apagar</DropdownItem>
+                <DropdownItem onClick={() => {
+                  setSelectedUsinaId(usina.id); // Armazena o id da usina selecionada
+                  openDeleteConfirmationModal(); // Abre o modal de confirmação
+                }}>Apagar</DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -425,6 +450,32 @@ export default function App() {
         </TableBody>
 
       </Table>
+
+      <Modal
+        isOpen={confirmDeleteModalOpen}
+        onOpenChange={closeDeleteConfirmationModal}
+        placement="center"
+      >
+        <ModalContent>
+          <ModalHeader>Confirmação de Exclusão</ModalHeader>
+          <ModalBody>
+            <p>Deseja realmente apagar esta usina?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onPress={() => {
+              if (selectedUsinaId !== null) {
+                handleDeleteUsina(selectedUsinaId);
+                closeDeleteConfirmationModal();
+              }
+            }}>
+              Confirmar
+            </Button>
+            <Button onPress={closeDeleteConfirmationModal}>
+              Cancelar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       <Modal
         isOpen={isOpen}
