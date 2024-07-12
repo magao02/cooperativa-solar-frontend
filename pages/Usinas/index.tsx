@@ -32,7 +32,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { deleteUsina, getAllUsersData, getAllUsinasData, usinaCreate } from "./api";
+import { deleteUsina, getAllUsersData, getAllUsinasData, getUsinaById, updateUsina, usinaCreate } from "./api";
 //Interfaces
 interface UsinaColumn {
   key: string;
@@ -115,17 +115,20 @@ export default function App() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [nomeUsina, setNomeUsina] = useState("")
-  const [estadoUsina, setEstadoUsina] = useState("")
-  const [potenciaInstaladaUsina, setPotenciaInstaladaUsina] = useState("")
-  const [potenciaNominalUsina, setPotenciaNominalUsina] = useState("")
-  const [capacidadeGeracaoUsina, setCapacidadeGeracaoUsina] = useState("")
-  const [animacaoCadastro, setAnimacaoCadastro] = useState("")
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [nomeUsina, setNomeUsina] = useState("");
+  const [estadoUsina, setEstadoUsina] = useState("");
+  const [potenciaInstaladaUsina, setPotenciaInstaladaUsina] = useState("");
+  const [potenciaNominalUsina, setPotenciaNominalUsina] = useState("");
+  const [capacidadeGeracaoUsina, setCapacidadeGeracaoUsina] = useState("");
+  const [animacaoCadastro, setAnimacaoCadastro] = useState("");
+  const [animacaoEdicao, setAnimacaoEdicao] = useState("");
   const [selectedResponsavelUserId, setSelectedResponsavelUserId] = useState(null);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
   const [selectedUsinaId, setSelectedUsinaId] = useState<number | null>(null);
+  const [editUsinaModalOpen, setEditUsinaModalOpen] = useState(false);
+  const [usinaData, setUsinaData] = useState(null);
 
   const [sortDescriptor, setSortDescriptor] = React.useState({
     column: "name",
@@ -139,6 +142,81 @@ export default function App() {
   const closeDeleteConfirmationModal = () => {
     setConfirmDeleteModalOpen(false);
   };
+
+  const openEditUsinaModal = () => {
+    setEditUsinaModalOpen(true);
+  };
+
+  const closeEditUsinaModal = () => {
+    setEditUsinaModalOpen(false);
+  }
+
+  useEffect(() => {
+    if (selectedUsinaId !== null) {
+      const fetchData = async () => {
+        try {
+          const data = await getUsinaById(selectedUsinaId);
+          setUsinaData(data);
+          setNomeUsina(data.nome);
+          setEstadoUsina(data.localizacao);
+          setPotenciaInstaladaUsina(data.potenciaInstalada);
+          setPotenciaNominalUsina(data.potenciaNominal);
+          setCapacidadeGeracaoUsina(data.capacidadeGeracao);
+        } catch (error) {
+          console.error("Erro ao buscar dados da usina", error);
+        }
+      };
+
+      fetchData();
+    }
+  }, [selectedUsinaId]);
+
+  const handleUpdateUsina = async () => {
+    setAnimacaoEdicao("loading");
+
+    if (selectedUsinaId === null || selectedResponsavelUserId === null) {
+      setAnimacaoEdicao(""); // Reseta a animação se os IDs forem nulos
+      return;
+    }
+
+    const usinaBody = {
+      nome: nomeUsina,
+      localizacao: estadoUsina,
+      potenciaInstalada: parseInt(potenciaInstaladaUsina),
+      potenciaNominal: parseInt(potenciaNominalUsina),
+      capacidadeGeracao: parseInt(capacidadeGeracaoUsina),
+      usuarioResponsavel: selectedResponsavelUserId,
+    };
+
+    try {
+      await updateUsina(selectedUsinaId, usinaBody);
+      setAnimacaoEdicao("success");
+
+      // Aguarda um curto período para garantir que a animação seja exibida
+      setTimeout(() => {
+        setAnimacaoEdicao("");
+        closeEditUsinaModal();
+        fetchDataUsinas();
+        // Redefine todos os estados relevantes após a atualização
+        setSelectedUsinaId(null);
+        setNomeUsina('');
+        setEstadoUsina('');
+        setPotenciaInstaladaUsina('');
+        setPotenciaNominalUsina('');
+        setCapacidadeGeracaoUsina('');
+        setSelectedResponsavelUserId(null);
+      }, 1000); // Ajuste o tempo conforme necessário
+    } catch (error) {
+      setAnimacaoEdicao("error");
+      console.error("Erro ao atualizar a usina", error);
+
+      // Aguarda um curto período para garantir que a animação de erro seja exibida
+      setTimeout(() => {
+        setAnimacaoEdicao("");
+      }, 1000); // Ajuste o tempo conforme necessário
+    }
+  };
+
 
   const fetchUserData = async () => {
     try {
@@ -304,7 +382,10 @@ export default function App() {
                 </Button>
               </DropdownTrigger>
               <DropdownMenu>
-                <DropdownItem>Editar</DropdownItem>
+                <DropdownItem onClick={() => {
+                  setSelectedUsinaId(usina.id);
+                  openEditUsinaModal();
+                }}>Editar</DropdownItem>
                 <DropdownItem onClick={() => {
                   setSelectedUsinaId(usina.id); // Armazena o id da usina selecionada
                   openDeleteConfirmationModal(); // Abre o modal de confirmação
@@ -413,6 +494,33 @@ export default function App() {
     }
   }
 
+  const retornaAnimacaoEdicao = () => {
+    switch (animacaoEdicao) {
+      case "loading":
+        return (
+          <ModalBody>
+            <Spinner label="atualizando usina" size="lg" />
+          </ModalBody>
+        )
+
+      case "success":
+        return (
+          <ModalBody>
+            <p>Usina editada com sucesso!</p>
+          </ModalBody>
+        )
+
+      case "error":
+        return (
+          <ModalBody>
+            <p>Ocorreu um erro ao editar a usina!</p>
+          </ModalBody>
+        )
+      default:
+        return ("")
+    }
+  }
+
   if (loading) {
     return <Spinner size="lg" />;
   }
@@ -474,6 +582,86 @@ export default function App() {
               Cancelar
             </Button>
           </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={editUsinaModalOpen}
+        onOpenChange={closeEditUsinaModal}
+        placement="center"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Editar Usina</ModalHeader>
+              {animacaoEdicao === "" ? (
+                <>
+                  <ModalBody>
+                    <Input
+                      autoFocus
+                      isRequired
+                      label="Nome"
+                      placeholder=""
+                      variant="bordered"
+                      value={nomeUsina}
+                      onValueChange={setNomeUsina}
+                    />
+
+                    <Input
+                      isRequired
+                      label="Estado"
+                      value={estadoUsina}
+                      onValueChange={setEstadoUsina}
+                      variant="bordered"
+                    />
+                    <Input
+                      isRequired
+                      label="Potência Instalada"
+                      variant="bordered"
+                      value={potenciaInstaladaUsina}
+                      onValueChange={setPotenciaInstaladaUsina}
+                    />
+                    <Input
+                      isRequired
+                      value={potenciaNominalUsina}
+                      onValueChange={setPotenciaNominalUsina}
+                      type="number"
+                      label="Potência Nominal"
+                      variant="bordered"
+                    />
+                    <Input
+                      isRequired
+                      label="Capacidade de Geração"
+                      value={capacidadeGeracaoUsina}
+                      onValueChange={setCapacidadeGeracaoUsina}
+                      variant="bordered"
+                    />
+                    <Autocomplete
+                      label="Responsável pela usina"
+                      defaultItems={users}
+                    >
+                      {(item) => (
+                        <AutocompleteItem
+                          key={item.id}
+                          onClick={() => handleResponsavelUserSelect(item.id)}
+                        >
+                          {item.nome}
+                        </AutocompleteItem>
+                      )}
+                    </Autocomplete>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="primary" onPress={handleUpdateUsina}>
+                      Salvar
+                    </Button>
+                    <Button onPress={onClose}>
+                      Cancelar
+                    </Button>
+                  </ModalFooter>
+                </>
+              ) : retornaAnimacaoEdicao()}
+            </>
+          )}
         </ModalContent>
       </Modal>
 
