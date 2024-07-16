@@ -17,24 +17,25 @@ import {
   Spinner,
   CalendarDate,
 
-  
+
 } from "@nextui-org/react";
-import {Input} from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
 import {
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   ModalFooter
 } from "@nextui-org/react";
-import {Select, SelectItem} from "@nextui-org/react";
-import {DatePicker} from "@nextui-org/date-picker";
-import {Card, CardBody} from "@nextui-org/react";
+import { Select, SelectItem } from "@nextui-org/react";
+import { DatePicker } from "@nextui-org/date-picker";
+import { Card, CardBody } from "@nextui-org/react";
 import { FaPlus } from "react-icons/fa6";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
+import { createUser, getAllUsersData } from "./api/api";
 //Interfaces
 interface UserColumn {
   key: string;
@@ -48,13 +49,13 @@ interface UserInterface {
   cpf: String,
   email: String,
   uc: String,
-  planoAdesao:  String,
+  planoAdesao: String,
   consumoMedio: number,
   tipoConta: String,
 }
 
 const columns = [
-  { 
+  {
     key: "tipoConta",
     label: "Tipo de Conta",
 
@@ -67,12 +68,12 @@ const columns = [
     key: "nome",
     label: "Nome",
   },
-  
+
   {
     key: "cpfcnpj",
     label: "CPF/CNPJ",
   },
- 
+
   {
     key: "planoAdesao",
     label: "Plano de Adesão",
@@ -85,64 +86,64 @@ const columns = [
     key: "estado",
     label: "Estado",
   },
-  
+
   {
     key: "actions",
     label: "Ações",
   }
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["tipoConta","uc","nome", "cpfcnpj","planoAdesao", "capacidadeClientes", "capacidadeGeracao","estado","actions"];
+const INITIAL_VISIBLE_COLUMNS = ["tipoConta", "uc", "nome", "cpfcnpj", "planoAdesao", "capacidadeClientes", "capacidadeGeracao", "estado", "actions"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-const plans =[
+const plans = [
   {
-    value : 1,
-    label : "mensal"
+    value: 1,
+    label: "mensal"
   },
   {
-    value : 3,
-    label : "trimestral"
+    value: 3,
+    label: "trimestral"
   },
   {
-    value : 12,
-    label : "Anual"
-  },
-
-]
-const tiposUsuario =[
-  {
-    value : "Admin",
-    label : "Administrador"
-  },
-  {
-    value : "Gestor",
-    label : "Gestor Usina"
-  },
-  {
-    value : "Cliente",
-    label : "Cliente"
+    value: 12,
+    label: "Anual"
   },
 
 ]
+const tiposUsuario = [
+  {
+    value: "Admin",
+    label: "Administrador"
+  },
+  {
+    value: "Gestor",
+    label: "Gestor Usina"
+  },
+  {
+    value: "Cliente",
+    label: "Cliente"
+  },
 
-const tarifas =[
+]
+
+const tarifas = [
   {
-    value : "B1",
-    label : "Residencial normal"
+    value: "B1",
+    label: "Residencial normal"
   },
   {
-    value : "B2",
-    label : "Rural"
+    value: "B2",
+    label: "Rural"
   },
   {
-    value : "B3",
-    label : "Comercial/Industrial"
+    value: "B3",
+    label: "Comercial/Industrial"
   },
   {
-    value : "B4",
-    label : "Iluminação pública"
+    value: "B4",
+    label: "Iluminação pública"
   },
 
 ]
@@ -150,8 +151,8 @@ export default function App() {
   const [users, setUsers] = useState<UserInterface[]>([]);
   const [filterValue, setFilterValue] = React.useState("");
   const [page, setPage] = useState(1);
-  const {isOpen, onOpen, onOpenChange} = useDisclosure();
-  const [loading, setLoading] = useState(true)
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [loading, setLoading] = useState(false)
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
   const [scrollBehavior, setScrollBehavior] = React.useState("inside");
 
@@ -175,83 +176,74 @@ export default function App() {
 
   const hasSearchFilter = Boolean(filterValue);
 
-  const fetchUsuarios = async () => {
+  const fetchUserData = async () => {
     try {
-      setLoading(true); // Inicia o loading
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      const userData = await getAllUsersData();
+      setUsers(userData || []);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
     }
-    const result = await response.json();
-    console.log(result)
-    setUsers(result);
   }
-    catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false); // Finaliza o loading
-    }
-  };
 
   useEffect(() => {
-    fetchUsuarios();
+    fetchUserData();
   }, []);
 
-  const handleTipoUsuarioChange = (value:any) => {
+  const handleTipoUsuarioChange = (value: any) => {
     setTipoUsuario(value.target.value);
   };
-  const handleTarifaChange = (value:any) => {
+  const handleTarifaChange = (value: any) => {
     setTarifaCadastro(value.target.value);
   };
 
-  const handlePlanoChange = (value:any) => {
+  const handlePlanoChange = (value: any) => {
     setPlanoCadastro(value.target.value);
   };
 
-  const CadastrarUsuario = async ()=>{
-    const usuario: any = {
+  const CadastrarUsuario = async () => {
+    const userBody: any = {
       nome: nomeCadastro,
       email: emailCadastro,
       tipoConta: tipoUsuario,
       data_nascimento: dataNascimentoCadastro,
       cpfcnpj: cpfcnpjCadastro,
       telefone: telefoneCadastro,
-      
-    }
-    if(tipoUsuario == "Cliente"){
-      usuario['endereco'] = enderecoCadastro;
-      usuario['consumoMedio'] = parseInt(consumoMedioCadastro);
-      usuario['usina'] = parseInt(usinaCadastro);
-      usuario['plano'] = planoCadastro;
-      usuario['tarifa'] = tarifaCadastro;
-      usuario['uc'] = ucCadastro;
-    }
-    console.log(usuario)
+
+    };
+
+    if (tipoUsuario == "Cliente") {
+      userBody['endereco'] = enderecoCadastro;
+      userBody['consumoMedio'] = parseInt(consumoMedioCadastro);
+      userBody['usina'] = parseInt(usinaCadastro);
+      if (userBody['plano'] === 1) {
+        planoCadastro === "mensal";
+      } else if (userBody['plano'] === 3) {
+        planoCadastro === "trimestral";
+      } else if (userBody['plano'] === 12) {
+        planoCadastro === "anual";
+      }
+      userBody['tarifa'] = tarifaCadastro;
+      userBody['uc'] = ucCadastro;
+    };
+
+    console.log("PLANO AQUI BUCETA", userBody.plano);
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(usuario)
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      setLoading(true);
+      const data = await createUser(userBody);
+      console.log('Usuário cadastrado com sucesso', data);
+
+      fetchUserData();
+      onOpenChange()
     }
-    const result = await response.status;
-    console.log(result)
-    fetchUsuarios();
-    onOpenChange()
-  
-  }
     catch (error) {
       console.error(error);
     } finally {
-      setLoading(false); // Finaliza o loading
+      setLoading(false);
     }
   }
 
-  
+
 
   const headerColumns = React.useMemo(() => {
     return columns.filter((column) => Array.from(visibleColumns).includes(column.key));
@@ -261,8 +253,8 @@ export default function App() {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
-  
-  
+
+
   const filteredItems = React.useMemo(() => {
     let filteredUsers = [...users];
 
@@ -276,15 +268,15 @@ export default function App() {
   }, [users, filterValue]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
-  
-  
+
+
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
     return filteredItems.slice(start, end);
   }, [page, filteredItems, rowsPerPage]);
-  
+
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a, b) => {
       const first = a[sortDescriptor.column];
@@ -304,20 +296,20 @@ export default function App() {
     }
   }, []);
 
-  const onClear = React.useCallback(()=>{
+  const onClear = React.useCallback(() => {
     setFilterValue("")
     setPage(1)
-  },[])
- 
-  
-  const renderCell = React.useCallback((usina: UserInterface, columnKey:string) => {
+  }, [])
+
+
+  const renderCell = React.useCallback((usina: UserInterface, columnKey: string) => {
     const cellValue = getKeyValue(usina, columnKey);
 
     switch (columnKey) {
       case "nome":
-        return(
+        return (
           <Link href="usuario/1">
-            <div className="flex flex r items-center gap-2">
+            <div className="flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
           </Link>
@@ -339,9 +331,9 @@ export default function App() {
           </div>
         );
       default:
-        return <div className="flex flex r items-center gap-2">
-        <p className="text-bold text-small capitalize">{cellValue}</p>
-      </div>
+        return <div className="flex r items-center gap-2">
+          <p className="text-bold text-small capitalize">{cellValue}</p>
+        </div>
     }
   }, []);
 
@@ -349,18 +341,18 @@ export default function App() {
     return (
       <div className="flex w-full flex-col  pt-10 px-10 gap-4">
         <div className="flex justify-between gap-3 items-end">
-        <Input
+          <Input
             isClearable
             className="w-full sm:max-w-[44%]"
             placeholder="Procura pelo Nome..."
-            startContent={<FaSearch  />}
+            startContent={<FaSearch />}
             value={filterValue}
             onClear={() => onClear()}
             onValueChange={onSearchChange}
           />
-          
+
           <div className="flex gap-3">
-            
+
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button size="lg" endContent={<FaChevronDown className="text-small" />} variant="flat">
@@ -382,15 +374,15 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button color="primary" onPress={onOpen} size="lg"   endContent={<FaPlus color="primary"/>}>
-            Cadastrar usuário
+            <Button color="primary" onPress={onOpen} size="lg" endContent={<FaPlus color="primary" />}>
+              Cadastrar usuário
             </Button>
           </div>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-default-600 ">Total {users.length} usuários no sistema</span>
           <label className="flex items-center text-default-600 ">
-           Linhas por página
+            Linhas por página
             <select
               className="bg-transparent outline-none text-default-600 "
               onChange={onRowsPerPageChange}
@@ -401,14 +393,14 @@ export default function App() {
             </select>
           </label>
         </div>
-       
+
       </div>
     );
   }, [
     filterValue,
     visibleColumns,
     onRowsPerPageChange,
-    
+
   ]);
 
 
@@ -419,40 +411,40 @@ export default function App() {
   return (
     <>
 
-      
-    <Table className="px-10" aria-label="tablea de usuarios"
-    topContent={topContent}
-    topContentPlacement="outside"
-    sortDescriptor={sortDescriptor}
-    onSortChange={setSortDescriptor}
-     bottomContent={
-      <div className="flex w-full justify-center">
-        
-        <Pagination
-          isCompact
-          showControls
-          showShadow
-          color="primary"
-          page={page}
-          total={pages}
-          onChange={(page) => setPage(page)}
-        />
-      </div>
-    } >
-      <TableHeader columns={headerColumns}>
-        {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
-      </TableHeader>
-      <TableBody emptyContent={"Nenhum usuário encontrado."} items={sortedItems}>
-        {(item: Usina) => (
-          <TableRow key={item.id}>
-            {(columnKey: any) => <TableCell >{renderCell(item,columnKey)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-      
-      <Modal 
-        isOpen={isOpen} 
+
+      <Table className="px-10" aria-label="tablea de usuarios"
+        topContent={topContent}
+        topContentPlacement="outside"
+        sortDescriptor={sortDescriptor}
+        onSortChange={setSortDescriptor}
+        bottomContent={
+          <div className="flex w-full justify-center">
+
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="primary"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        } >
+        <TableHeader columns={headerColumns}>
+          {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
+        </TableHeader>
+        <TableBody emptyContent={"Nenhum usuário encontrado."} items={sortedItems}>
+          {(item: Usina) => (
+            <TableRow key={item.id}>
+              {(columnKey: any) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      <Modal
+        isOpen={isOpen}
         onOpenChange={onOpenChange}
         placement="top-center"
         scrollBehavior={scrollBehavior}
@@ -464,7 +456,7 @@ export default function App() {
               <ModalBody>
                 <Input
                   autoFocus
-                 
+
                   label="Nome"
                   placeholder=""
                   variant="bordered"
@@ -472,55 +464,55 @@ export default function App() {
                   onChange={(e) => setNomeCadastro(e.target.value)}
                 />
                 <Input
-                 autoFocus
+                  autoFocus
                   label="Telefone"
-                   variant="bordered" 
-                   value={telefoneCadastro}
-                   onChange={(e) => setTelefoneCadastro(e.target.value)} />
-                
-               <DatePicker label="Data Nascimento"  onChange={(e)=>{setDataNascimentoCadastro(e.toString())}}   />
-               <Input autoFocus label="CPF/CNPJ" value={cpfcnpjCadastro} onChange={(e)=> setCpfcnpjCadastro(e.target.value)} variant="bordered" />
-                <Input autoFocus label="Email" value={emailCadastro} onChange={(e)=> setEmailCadastro(e.target.value) } variant="bordered" />
-                <Select
-                items={tiposUsuario}
-                label="Tipo de usuário"
-                onChange={handleTipoUsuarioChange}
-                placeholder="Selecione o tipo de usuário"
-  
-              >
-                {(tiposUsuario) => <SelectItem key={tiposUsuario.value}>{tiposUsuario.label}</SelectItem>}
-              </Select>
-              {tipoUsuario == "Cliente" && (
-                <>
-                <Input autoFocus label="Endereço" variant="bordered" />
-                <Input autoFocus label="UC" variant="bordered" />
-                <Input autoFocus label="Consumo Médio" variant="bordered" />
-               
-                <Select
-                items={plans}
-                onChange={handlePlanoChange}
-                label="Plano de adesão"
-                placeholder="Selecione um plano"
-  
-              >
-                {(plan) => <SelectItem key={plan.value}>{plan.label}</SelectItem>}
-              </Select>
+                  variant="bordered"
+                  value={telefoneCadastro}
+                  onChange={(e) => setTelefoneCadastro(e.target.value)} />
 
-              <Select
-                items={tarifas}
-                onChange={handleTarifaChange}
-                label="Tarifa"
-                placeholder="Selecione uma tarifa"
-  
-              >
-                {(tarifa) => <SelectItem key={tarifa.value}>{tarifa.label}</SelectItem>}
-              </Select>
-              </>
-              )}
-                
+                <DatePicker label="Data Nascimento" onChange={(e) => { setDataNascimentoCadastro(e.toString()) }} />
+                <Input autoFocus label="CPF/CNPJ" value={cpfcnpjCadastro} onChange={(e) => setCpfcnpjCadastro(e.target.value)} variant="bordered" />
+                <Input autoFocus label="Email" value={emailCadastro} onChange={(e) => setEmailCadastro(e.target.value)} variant="bordered" />
+                <Select
+                  items={tiposUsuario}
+                  label="Tipo de usuário"
+                  onChange={handleTipoUsuarioChange}
+                  placeholder="Selecione o tipo de usuário"
+
+                >
+                  {(tiposUsuario) => <SelectItem key={tiposUsuario.value}>{tiposUsuario.label}</SelectItem>}
+                </Select>
+                {tipoUsuario == "Cliente" && (
+                  <>
+                    <Input autoFocus label="Endereço" variant="bordered" />
+                    <Input autoFocus label="UC" variant="bordered" />
+                    <Input autoFocus label="Consumo Médio" variant="bordered" />
+
+                    <Select
+                      items={plans}
+                      onChange={handlePlanoChange}
+                      label="Plano de adesão"
+                      placeholder="Selecione um plano"
+                    >
+                      {(plan) => <SelectItem key={plan.value}>{plan.label}</SelectItem>}
+                    </Select>
+
+
+                    <Select
+                      items={tarifas}
+                      onChange={handleTarifaChange}
+                      label="Tarifa"
+                      placeholder="Selecione uma tarifa"
+
+                    >
+                      {(tarifa) => <SelectItem key={tarifa.value}>{tarifa.label}</SelectItem>}
+                    </Select>
+                  </>
+                )}
+
               </ModalBody>
               <ModalFooter>
-              
+
                 <Button color="primary" onPress={CadastrarUsuario}>
                   Cadastrar
                 </Button>

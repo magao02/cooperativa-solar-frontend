@@ -17,13 +17,13 @@ export default function Login() {
   };
 
   return (
-    <div style={{display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh"}}>
-      <Card style={{ width: "400px", padding: 20}}>
-      <Spacer y={4} />
-      <h1 style={{ textAlign:"center", marginBottom: "10" }}>Faça login</h1>
-      <Spacer y={4} />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "90vh" }}>
+      <Card style={{ width: "500px", height: "300px", padding: 20 }}>
+        <Spacer y={4} />
+        <h1 style={{ textAlign: "center", marginBottom: "10" }}>Acesse sua Conta</h1>
+        <Spacer y={4} />
         <form onSubmit={(e) => e.preventDefault()}>
-        
+
           <Input
             fullWidth
             color="primary"
