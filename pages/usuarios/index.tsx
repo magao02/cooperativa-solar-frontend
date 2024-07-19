@@ -237,8 +237,6 @@ export default function App() {
       userBody['uc'] = ucCadastro;
     };
 
-    console.log("PLANO AQUI BUCETA", userBody.plano);
-
     try {
       setLoading(true);
       const data = await createUser(userBody);
@@ -246,6 +244,18 @@ export default function App() {
 
       fetchUserData();
       onOpenChange()
+
+      setNomeCadastro('');
+      setEmailCadastro('');
+      setEnderecoCadastro('');
+      setTelefoneCadastro('');
+      setDataNascimentoCadastro('');
+      setCpfcnpjCadastro('');
+      setUcCadastro('');
+      setConsumoMedioCadastro('');
+      setPlanoCadastro('');
+      setTarifaCadastro('');
+      setUsinaCadastro('');
     }
     catch (error) {
       console.error(error);

@@ -10,3 +10,8 @@ export const findUsersByUsinaId = async (id: number) => {
   const response = await api.get(`/users/usina/${id}`);
   return response.data;
 }
+
+export const getUsinaById = async (id: number) => {
+  const response = await api.get(`/usinas/${id}`);
+  return response.data;
+}

@@ -34,7 +34,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { createUser } from "./api";
+import { createUser, getUsinaById } from "./api";
 import { useRouter } from "next/router";
 //Interfaces
 interface UserColumn {
@@ -197,6 +197,16 @@ const tarifas = [
   },
 
 ]
+
+interface UsinaData {
+  id: number;
+  nome: string;
+  estado: string;
+  potenciaInstalada: number;
+  potenciaNominal: number;
+  capacidadeGeracao: number;
+}
+
 export default function App() {
   const [nomeCadastro, setNomeCadastro] = useState("");
   const [emailCadastro, setEmailCadastro] = useState("");
@@ -217,6 +227,12 @@ export default function App() {
   const [scrollBehavior, setScrollBehavior] = React.useState("inside");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [loading, setLoading] = useState(false);
+  const [dadosUsina, setDadosUsina] = useState<UsinaData | null>(null);
+  const [nomeUsina, setNomeUsina] = useState("");
+  const [potenciaInstalada, setPotenciaInstalada] = useState(0);
+  const [potenciaNominal, setPotenciaNominal] = useState(0);
+  const [capacidadeGeracao, setCapacidadeGeracao] = useState<number | null>(null);
+  const [localizacao, setLocalizacao] = useState("");
   const router = useRouter();
   const { id } = router.query;
   const [sortDescriptor, setSortDescriptor] = React.useState({
@@ -235,6 +251,30 @@ export default function App() {
     3: 'trimestral',
     12: 'anual'
   };
+
+  const fetchUsinaData = async (id) => {
+    try {
+      const usinaData = await getUsinaById(id);
+      setDadosUsina(usinaData);
+      setCapacidadeGeracao(usinaData.capacidadeGeracao);
+      console.log("Dados da usina:", usinaData);
+    } catch (error) {
+      console.log("Erro ao buscar dados da usina", error);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof id === "string") {
+      const numericId = parseInt(id, 10);
+      if (!isNaN(numericId)) {
+        fetchUsinaData(numericId);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("Capacidade de Geração:", capacidadeGeracao);
+  }, [capacidadeGeracao]);
 
   const CadastrarUsuario = async () => {
     const planoMapped = planoMapping[parseInt(planoCadastro)];
@@ -281,27 +321,6 @@ export default function App() {
       setLoading(false);
     }
   };
-
-
-
-
-  // const CadastrarUsuário = () => {
-  //   const usuario = {
-  //     id: users.length + 1,
-  //     nome: "Usina Solar C",
-  //     estado: "SP",
-  //     cpf: "123.456.789-00",
-  //     email: "teste@gmail.com",
-  //     uc: "123456789",
-  //     planoAdesao: "Plano A",
-  //     consumoMedio: 300,
-  //   }
-  //   setUsers([...users, usuario])
-  //   onOpenChange()
-
-  //   console.log("Cadastrado")
-  // }
-
 
   const onRowsPerPageChange = React.useCallback((e: any) => {
     setRowsPerPage(Number(e.target.value));
@@ -363,7 +382,7 @@ export default function App() {
       case "nome":
         return (
           <Link href="usina/1">
-            <div className="flex flex r items-center gap-2">
+            <div className="flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
           </Link>
@@ -385,15 +404,15 @@ export default function App() {
           </div>
         );
       default:
-        return <div className="flex flex r items-center gap-2">
+        return <div className="flex r items-center gap-2">
           <p className="text-bold text-small capitalize">{cellValue}</p>
         </div>
     }
   }, []);
 
-  const topContent = React.useMemo(() => {
-    return (
-      <div className="flex w-full flex-col  pt-10 px-10 gap-4">
+  return (
+    <div>
+      <div className="flex w-full flex-col pt-10 px-10 gap-4">
         <div className="flex justify-between gap-3 items-end">
           <Input
             isClearable
@@ -401,12 +420,10 @@ export default function App() {
             placeholder="Procura pelo Nome..."
             startContent={<FaSearch />}
             value={filterValue}
-            onClear={() => onClear()}
+            onClear={onClear}
             onValueChange={onSearchChange}
           />
-
           <div className="flex gap-3">
-
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button size="lg" endContent={<FaChevronDown className="text-small" />} variant="flat">
@@ -434,55 +451,48 @@ export default function App() {
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-600 ">Total {users.length} usuários na usina</span>
-          <label className="flex items-center text-default-600 ">
+          <span className="text-default-600">Total {users.length} usuários na usina</span>
+          <label className="flex items-center text-default-600">
             Linhas por página
-            <select
-              className="bg-transparent outline-none text-default-600 "
-              onChange={onRowsPerPageChange}
-            >
+            <select className="bg-transparent outline-none text-default-600" onChange={onRowsPerPageChange}>
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="15">15</option>
             </select>
           </label>
         </div>
-        <div className="flex justify-center items-center gap-3">
+        <div className="flex justify-center items-center gap-3 mb-4">
           <Card>
             <CardBody className="px-8 py-5">
-              <h3 className="text-xl max-w-25  text-center">Capacidade</h3>
-              <h3 className="text-xl max-w-26  text-center"> de Geração</h3>
-              <p className=" text-center text-4xl font-semibold !important">2000kw</p>
+              <h3 className="text-xl max-w-25 text-center">Capacidade</h3>
+              <h3 className="text-xl max-w-26 text-center"> de Geração</h3>
+              <p className="text-center text-4xl font-semibold !important">
+                {capacidadeGeracao !== null ? (
+                  capacidadeGeracao
+                ) : (
+                  <Spinner />
+                )}
+              </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="px-8 py-5">
-              <h3 className="text-xl  text-center">Em uso</h3>
-              <h3 className="text-xl max-w-26  text-center"> por clientes</h3>
-              <h2 className=" text-center text-4xl font-semibold !important">1500kw</h2>
+              <h3 className="text-xl text-center">Em uso</h3>
+              <h3 className="text-xl max-w-26 text-center"> por clientes</h3>
+              <h2 className="text-center text-4xl font-semibold !important">1500kw</h2>
             </CardBody>
           </Card>
-          <Card >
+          <Card>
             <CardBody className="px-8 py-5">
-              <h3 className="text-xl max-w-26   text-center">Disponível para </h3>
-              <h3 className="text-xl max-w-26    text-center"> novos usuários</h3>
-              <h2 className=" text-center text-4xl   font-semibold !important">500kw</h2>
+              <h3 className="text-xl max-w-26 text-center">Disponível para </h3>
+              <h3 className="text-xl max-w-26 text-center"> novos usuários</h3>
+              <h2 className="text-center text-4xl font-semibold !important">500kw</h2>
             </CardBody>
           </Card>
         </div>
       </div>
-    );
-  }, [
-    filterValue,
-    visibleColumns,
-    onRowsPerPageChange,
 
-  ]);
-
-  return (
-    <>
       <Table className="px-10" aria-label="tablea de usuarios"
-        topContent={topContent}
         topContentPlacement="outside"
         sortDescriptor={sortDescriptor}
         onSortChange={setSortDescriptor}
@@ -603,6 +613,13 @@ export default function App() {
           )}
         </ModalContent>
       </Modal>
+
+    </div>
+  );
+
+  return (
+    <>
+
 
     </>
   );
