@@ -34,9 +34,9 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { createUser, getUsinaById } from "./api";
+import { createUser, findUsersByUsinaId, getUsinaById } from "./api";
 import { useRouter } from "next/router";
-//Interfaces
+
 interface UserColumn {
   key: string;
   label: string;
@@ -53,77 +53,6 @@ interface UserInterface {
   consumoMedio: number,
 }
 
-
-
-const usersReq = [
-  {
-    id: 1,
-    nome: "Lucas Carvalho",
-    estado: "SP",
-    cpf: "123.456.789-00",
-    email: "teste@gmail.com",
-    uc: "123456789",
-    planoAdesao: "Plano A",
-    consumoMedio: 300,
-
-  },
-  {
-    id: 2,
-    nome: "Lucas Carvalho",
-    estado: "SP",
-    cpf: "123.456.789-00",
-    email: "teste@gmail.com",
-    uc: "123456789",
-    planoAdesao: "Plano A",
-    consumoMedio: 300,
-
-  },
-  {
-    id: 3,
-    nome: "Lucas Carvalho",
-    estado: "SP",
-    cpf: "123.456.789-00",
-    email: "teste@gmail.com",
-    uc: "123456789",
-    planoAdesao: "Plano A",
-    consumoMedio: 300,
-
-  },
-  {
-    id: 4,
-    nome: "Lucas Carvalho",
-    estado: "SP",
-    cpf: "123.456.789-00",
-    email: "teste@gmail.com",
-    uc: "123456789",
-    planoAdesao: "Plano A",
-    consumoMedio: 300,
-
-  },
-  {
-    id: 5,
-    nome: "Lucas Carvalho",
-    estado: "SP",
-    cpf: "123.456.789-00",
-    email: "teste@gmail.com",
-    uc: "123456789",
-    planoAdesao: "Plano A",
-    consumoMedio: 300,
-
-  },
-  {
-    id: 6,
-    nome: "Lucas Carvalho",
-    estado: "SP",
-    cpf: "123.456.789-00",
-    email: "teste@gmail.com",
-    uc: "123456789",
-    planoAdesao: "Plano A",
-    consumoMedio: 300,
-
-  },
-
-];
 const columns = [
   {
     key: "uc",
@@ -133,32 +62,41 @@ const columns = [
     key: "nome",
     label: "Nome",
   },
-
   {
-    key: "cpf",
-    label: "CPF",
+    key: "cpfcnpj",
+    label: "CPF/CNPJ",
   },
-
   {
-    key: "planoAdesao",
-    label: "Plano de Adesão",
+    key: "tipoConta",
+    label: "Tipo de Conta",
+  },
+  {
+    key: "plano",
+    label: "Plano de adesão",
   },
   {
     key: "consumoMedio",
     label: "Consumo Médio",
   },
   {
-    key: "estado",
-    label: "Estado",
+    key: "endereco",
+    label: "Endereço",
   },
-
+  {
+    key: "email",
+    label: "Email",
+  },
+  {
+    key: "telefone",
+    label: "Telefone",
+  },
   {
     key: "actions",
     label: "Ações",
   }
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpf", "consumoMedio", "planoAdesao", "capacidadeClientes", "capacidadeGeracao", "estado", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpfcnpj", "consumoMedio", "tipoConta", "plano", "endereco", "email", "telefone", "actions"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -219,7 +157,7 @@ export default function App() {
   const [usinaCadastro, setUsinaCadastro] = useState("");
   const [planoCadastro, setPlanoCadastro] = useState("");
   const [tarifaCadastro, setTarifaCadastro] = useState("");
-  const [users, setUsers] = useState<UserInterface[]>(usersReq);
+  const [users, setUsers] = useState([]);
   const [filterValue, setFilterValue] = React.useState("");
   const [page, setPage] = useState(1);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -228,11 +166,7 @@ export default function App() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [loading, setLoading] = useState(false);
   const [dadosUsina, setDadosUsina] = useState<UsinaData | null>(null);
-  const [nomeUsina, setNomeUsina] = useState("");
-  const [potenciaInstalada, setPotenciaInstalada] = useState(0);
-  const [potenciaNominal, setPotenciaNominal] = useState(0);
   const [capacidadeGeracao, setCapacidadeGeracao] = useState<number | null>(null);
-  const [localizacao, setLocalizacao] = useState("");
   const router = useRouter();
   const { id } = router.query;
   const [sortDescriptor, setSortDescriptor] = React.useState({
@@ -252,7 +186,7 @@ export default function App() {
     12: 'anual'
   };
 
-  const fetchUsinaData = async (id) => {
+  const fetchUsinaData = async (id: number) => {
     try {
       const usinaData = await getUsinaById(id);
       setDadosUsina(usinaData);
@@ -328,7 +262,34 @@ export default function App() {
   }, []);
 
 
-  const filteredItems = React.useMemo(() => {
+  useEffect(() => {
+    const fetchUsers = async (id: number) => {
+      setLoading(true);
+      try {
+        const usersData = await findUsersByUsinaId(id);
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (typeof id === 'number') {
+      fetchUsers(id);
+    } else if (typeof id === 'string') {
+      const parsedId = parseInt(id, 10);
+      if (!isNaN(parsedId)) {
+        fetchUsers(parsedId);
+      }
+    }
+  }, [id]);
+
+  const filteredItems = useMemo(() => {
+    if (loading) {
+      return [];
+    }
+
     let filteredUsers = [...users];
 
     if (hasSearchFilter) {
@@ -338,7 +299,7 @@ export default function App() {
     }
 
     return filteredUsers;
-  }, [users, filterValue]);
+  }, [users, filterValue, loading]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -513,7 +474,7 @@ export default function App() {
         <TableHeader columns={headerColumns}>
           {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
         </TableHeader>
-        <TableBody emptyContent={"Nenhum Usina encontrada."} items={sortedItems}>
+        <TableBody emptyContent={"Nenhum usuário encontrado para essa usina."} items={sortedItems}>
           {(item: Usina) => (
             <TableRow key={item.id}>
               {(columnKey: any) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
