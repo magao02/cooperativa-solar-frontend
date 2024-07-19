@@ -45,7 +45,7 @@ interface UserColumn {
 interface UserInterface {
   id: number;
   nome: string;
-  estado: string;
+  endereco: string;
   cpf: String,
   email: String,
   uc: String,
@@ -83,8 +83,8 @@ const columns = [
     label: "Consumo Médio",
   },
   {
-    key: "estado",
-    label: "Estado",
+    key: "endereco",
+    label: "Endereço",
   },
 
   {
@@ -93,7 +93,7 @@ const columns = [
   }
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["tipoConta", "uc", "nome", "cpfcnpj", "planoAdesao", "capacidadeClientes", "capacidadeGeracao", "estado", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["tipoConta", "uc", "nome", "cpfcnpj", "planoAdesao", "capacidadeClientes", "capacidadeGeracao", "endereco", "actions"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -345,8 +345,8 @@ export default function App() {
               <DropdownMenu>
                 <DropdownItem>Editar</DropdownItem>
                 <DropdownItem onClick={() => {
-                  setSelectedUserId(user.id); // Armazena o id do usuário selecionado
-                  openDeleteConfirmationModal(); // Abre o modal de confirmação
+                  setSelectedUserId(user.id);
+                  openDeleteConfirmationModal();
                 }}>Apagar</DropdownItem>
               </DropdownMenu>
             </Dropdown>

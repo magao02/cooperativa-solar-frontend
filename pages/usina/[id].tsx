@@ -34,7 +34,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { createUser, findUsersByUsinaId, getUsinaById } from "./api";
+import { createUser, deleteUsina, findUsersByUsinaId, getUsinaById } from "./api";
 import { useRouter } from "next/router";
 
 interface UserColumn {
@@ -90,13 +90,9 @@ const columns = [
     key: "telefone",
     label: "Telefone",
   },
-  {
-    key: "actions",
-    label: "Ações",
-  }
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpfcnpj", "consumoMedio", "tipoConta", "plano", "endereco", "email", "telefone", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpfcnpj", "consumoMedio", "tipoConta", "plano", "endereco", "email", "telefone"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -167,8 +163,19 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [dadosUsina, setDadosUsina] = useState<UsinaData | null>(null);
   const [capacidadeGeracao, setCapacidadeGeracao] = useState<number | null>(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const router = useRouter();
   const { id } = router.query;
+  const idConvertedForNumber = (() => {
+    if (Array.isArray(id)) {
+      // Se id for um array, escolha o primeiro elemento ou trate conforme necessário
+      return id.length > 0 ? parseInt(id[0], 10) : undefined;
+    } else if (typeof id === 'string') {
+      // Se id é uma string, converter diretamente
+      return parseInt(id, 10);
+    }
+    return undefined;
+  })();
   const [sortDescriptor, setSortDescriptor] = React.useState({
     column: "name",
     direction: "ascending",
@@ -192,6 +199,7 @@ export default function App() {
       setDadosUsina(usinaData);
       setCapacidadeGeracao(usinaData.capacidadeGeracao);
       console.log("Dados da usina:", usinaData);
+      setIsDataLoaded(true);
     } catch (error) {
       console.log("Erro ao buscar dados da usina", error);
     }
@@ -285,6 +293,19 @@ export default function App() {
     }
   }, [id]);
 
+  const handleDeleteUsina = async (id: number) => {
+    try {
+      if (idConvertedForNumber) {
+        await deleteUsina(id);
+        fetchUsinaData(id);
+      } else {
+        console.log("Não foi possível pegar o ID da usina")
+      }
+    } catch (error) {
+      console.log("Erro ao excluir a usina", error);
+    }
+  };
+
   const filteredItems = useMemo(() => {
     if (loading) {
       return [];
@@ -336,8 +357,8 @@ export default function App() {
   }, [])
 
 
-  const renderCell = React.useCallback((usina: UserInterface, columnKey: string) => {
-    const cellValue = getKeyValue(usina, columnKey);
+  const renderCell = React.useCallback((user: UserInterface, columnKey: string) => {
+    const cellValue = getKeyValue(user, columnKey);
 
     switch (columnKey) {
       case "nome":
@@ -348,22 +369,6 @@ export default function App() {
             </div>
           </Link>
         )
-      case "actions":
-        return (
-          <div className="relative flex items-center gap-2">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="md" variant="light">
-                  <IoEllipsisVertical color="primary" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem>Editar</DropdownItem>
-                <DropdownItem>Apagar</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        );
       default:
         return <div className="flex r items-center gap-2">
           <p className="text-bold text-small capitalize">{cellValue}</p>
@@ -428,11 +433,7 @@ export default function App() {
               <h3 className="text-xl max-w-25 text-center">Capacidade</h3>
               <h3 className="text-xl max-w-26 text-center"> de Geração</h3>
               <p className="text-center text-4xl font-semibold !important">
-                {capacidadeGeracao !== null ? (
-                  capacidadeGeracao
-                ) : (
-                  <Spinner />
-                )}
+                {isDataLoaded ? (capacidadeGeracao !== null ? capacidadeGeracao : <Spinner />) : <Spinner />}
               </p>
             </CardBody>
           </Card>
@@ -574,14 +575,6 @@ export default function App() {
           )}
         </ModalContent>
       </Modal>
-
     </div>
-  );
-
-  return (
-    <>
-
-
-    </>
   );
 }

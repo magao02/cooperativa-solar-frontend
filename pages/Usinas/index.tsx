@@ -136,10 +136,12 @@ export default function App() {
   });
 
   const openDeleteConfirmationModal = () => {
+    fetchDataUsinas();
     setConfirmDeleteModalOpen(true);
   };
 
   const closeDeleteConfirmationModal = () => {
+    fetchDataUsinas();
     setConfirmDeleteModalOpen(false);
   };
 
@@ -389,8 +391,8 @@ export default function App() {
                   openEditUsinaModal();
                 }}>Editar</DropdownItem>
                 <DropdownItem onClick={() => {
-                  setSelectedUsinaId(usina.id); // Armazena o id da usina selecionada
-                  openDeleteConfirmationModal(); // Abre o modal de confirmação
+                  setSelectedUsinaId(usina.id);
+                  openDeleteConfirmationModal();
                 }}>Apagar</DropdownItem>
               </DropdownMenu>
             </Dropdown>
