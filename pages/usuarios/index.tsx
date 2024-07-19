@@ -173,8 +173,18 @@ export default function App() {
   const [usinaCadastro, setUsinaCadastro] = useState("");
   const [planoCadastro, setPlanoCadastro] = useState("");
   const [tarifaCadastro, setTarifaCadastro] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
 
   const hasSearchFilter = Boolean(filterValue);
+
+  const openDeleteConfirmationModal = () => {
+    setConfirmDeleteModalOpen(true);
+  };
+
+  const closeDeleteConfirmationModal = () => {
+    setConfirmDeleteModalOpen(false);
+  };
 
   const fetchUserData = async () => {
     try {
@@ -243,8 +253,6 @@ export default function App() {
     }
   }
 
-
-
   const headerColumns = React.useMemo(() => {
     return columns.filter((column) => Array.from(visibleColumns).includes(column.key));
   }, [visibleColumns]);
@@ -302,8 +310,8 @@ export default function App() {
   }, [])
 
 
-  const renderCell = React.useCallback((usina: UserInterface, columnKey: string) => {
-    const cellValue = getKeyValue(usina, columnKey);
+  const renderCell = React.useCallback((user: UserInterface, columnKey: string) => {
+    const cellValue = getKeyValue(user, columnKey);
 
     switch (columnKey) {
       case "nome":
@@ -325,7 +333,10 @@ export default function App() {
               </DropdownTrigger>
               <DropdownMenu>
                 <DropdownItem>Editar</DropdownItem>
-                <DropdownItem>Apagar</DropdownItem>
+                <DropdownItem onClick={() => {
+                  setSelectedUserId(user.id); // Armazena o id do usuário selecionado
+                  openDeleteConfirmationModal(); // Abre o modal de confirmação
+                }}>Apagar</DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>

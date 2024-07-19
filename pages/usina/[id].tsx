@@ -14,25 +14,28 @@ import {
   Dropdown,
   DropdownMenu,
   DropdownItem,
+  Spinner,
 
-  
+
 } from "@nextui-org/react";
-import {Input} from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
 import {
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   ModalFooter
 } from "@nextui-org/react";
-import {Select, SelectItem} from "@nextui-org/react";
-import {DatePicker} from "@nextui-org/date-picker";
-import {Card, CardBody} from "@nextui-org/react";
+import { Select, SelectItem } from "@nextui-org/react";
+import { DatePicker } from "@nextui-org/date-picker";
+import { Card, CardBody } from "@nextui-org/react";
 import { FaPlus } from "react-icons/fa6";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
+import { createUser } from "./api";
+import { useRouter } from "next/router";
 //Interfaces
 interface UserColumn {
   key: string;
@@ -46,7 +49,7 @@ interface UserInterface {
   cpf: String,
   email: String,
   uc: String,
-  planoAdesao:  String,
+  planoAdesao: String,
   consumoMedio: number,
 }
 
@@ -54,14 +57,14 @@ interface UserInterface {
 
 const usersReq = [
   {
-      id: 1,
-      nome: "Lucas Carvalho",
-      estado: "SP",
-      cpf: "123.456.789-00",
-      email: "teste@gmail.com",
-      uc: "123456789",
-      planoAdesao: "Plano A",
-      consumoMedio: 300,
+    id: 1,
+    nome: "Lucas Carvalho",
+    estado: "SP",
+    cpf: "123.456.789-00",
+    email: "teste@gmail.com",
+    uc: "123456789",
+    planoAdesao: "Plano A",
+    consumoMedio: 300,
 
   },
   {
@@ -119,7 +122,7 @@ const usersReq = [
     consumoMedio: 300,
 
   },
- 
+
 ];
 const columns = [
   {
@@ -130,12 +133,12 @@ const columns = [
     key: "nome",
     label: "Nome",
   },
-  
+
   {
     key: "cpf",
     label: "CPF",
   },
-  
+
   {
     key: "planoAdesao",
     label: "Plano de Adesão",
@@ -148,96 +151,164 @@ const columns = [
     key: "estado",
     label: "Estado",
   },
-  
+
   {
     key: "actions",
     label: "Ações",
   }
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["uc","nome", "cpf", "consumoMedio","planoAdesao", "capacidadeClientes", "capacidadeGeracao","estado","actions"];
+const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpf", "consumoMedio", "planoAdesao", "capacidadeClientes", "capacidadeGeracao", "estado", "actions"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-const plans =[
+const plans = [
   {
-    value : 1,
-    label : "mensal"
+    value: 1,
+    label: "mensal"
   },
   {
-    value : 3,
-    label : "trimestral"
+    value: 3,
+    label: "trimestral"
   },
   {
-    value : 12,
-    label : "Anual"
+    value: 12,
+    label: "Anual"
   },
 
 ]
 
-const tarifas =[
+const tarifas = [
   {
-    value : "B1",
-    label : "Residencial normal"
+    value: "B1",
+    label: "Residencial normal"
   },
   {
-    value : "B2",
-    label : "Rural"
+    value: "B2",
+    label: "Rural"
   },
   {
-    value : "B3",
-    label : "Comercial/Industrial"
+    value: "B3",
+    label: "Comercial/Industrial"
   },
   {
-    value : "B4",
-    label : "Iluminação pública"
+    value: "B4",
+    label: "Iluminação pública"
   },
 
 ]
 export default function App() {
+  const [nomeCadastro, setNomeCadastro] = useState("");
+  const [emailCadastro, setEmailCadastro] = useState("");
+  const [telefoneCadastro, setTelefoneCadastro] = useState("");
+  const [dataNascimentoCadastro, setDataNascimentoCadastro] = useState<any>(null);
+  const [cpfcnpjCadastro, setCpfcnpjCadastro] = useState("");
+  const [ucCadastro, setUcCadastro] = useState("");
+  const [enderecoCadastro, setEnderecoCadastro] = useState("");
+  const [consumoMedioCadastro, setConsumoMedioCadastro] = useState("");
+  const [usinaCadastro, setUsinaCadastro] = useState("");
+  const [planoCadastro, setPlanoCadastro] = useState("");
+  const [tarifaCadastro, setTarifaCadastro] = useState("");
   const [users, setUsers] = useState<UserInterface[]>(usersReq);
   const [filterValue, setFilterValue] = React.useState("");
   const [page, setPage] = useState(1);
-  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
   const [scrollBehavior, setScrollBehavior] = React.useState("inside");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { id } = router.query;
   const [sortDescriptor, setSortDescriptor] = React.useState({
     column: "name",
     direction: "ascending",
   });
   const hasSearchFilter = Boolean(filterValue);
-  
-  
+
+
   const headerColumns = React.useMemo(() => {
     return columns.filter((column) => Array.from(visibleColumns).includes(column.key));
   }, [visibleColumns]);
 
+  const planoMapping: { [key: number]: string } = {
+    1: 'mensal',
+    3: 'trimestral',
+    12: 'anual'
+  };
 
-  const CadastrarUsuário = ()=>{
-    const usuario = {
-      id: users.length + 1,
-      nome: "Usina Solar C",
-      estado: "SP",
-      cpf: "123.456.789-00",
-      email: "teste@gmail.com",
-      uc: "123456789",
-      planoAdesao: "Plano A",
-      consumoMedio: 300,
+  const CadastrarUsuario = async () => {
+    const planoMapped = planoMapping[parseInt(planoCadastro)];
+
+    const userBody: any = {
+      nome: nomeCadastro,
+      email: emailCadastro,
+      tipoConta: "Cliente",
+      data_nascimento: dataNascimentoCadastro,
+      cpfcnpj: cpfcnpjCadastro,
+      telefone: telefoneCadastro,
+      endereco: enderecoCadastro,
+      consumoMedio: parseInt(consumoMedioCadastro),
+      usina: Number(id),
+      plano: planoMapped,
+      tarifa: tarifaCadastro,
+      uc: ucCadastro
+    };
+
+    console.log(userBody);
+
+    try {
+      setLoading(true);
+      const data = await createUser(userBody);
+      console.log('Usuário cadastrado com sucesso', data);
+
+      // fetchUserData();
+      onOpenChange();
+
+      setNomeCadastro('');
+      setEmailCadastro('');
+      setEnderecoCadastro('');
+      setTelefoneCadastro('');
+      setDataNascimentoCadastro('');
+      setCpfcnpjCadastro('');
+      setUcCadastro('');
+      setConsumoMedioCadastro('');
+      setPlanoCadastro('');
+      setTarifaCadastro('');
+      setUsinaCadastro('');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-    setUsers([...users, usuario])
-    onOpenChange()
+  };
 
-    console.log("Cadastrado")
-  }
-  
 
-  const onRowsPerPageChange = React.useCallback((e) => {
+
+
+  // const CadastrarUsuário = () => {
+  //   const usuario = {
+  //     id: users.length + 1,
+  //     nome: "Usina Solar C",
+  //     estado: "SP",
+  //     cpf: "123.456.789-00",
+  //     email: "teste@gmail.com",
+  //     uc: "123456789",
+  //     planoAdesao: "Plano A",
+  //     consumoMedio: 300,
+  //   }
+  //   setUsers([...users, usuario])
+  //   onOpenChange()
+
+  //   console.log("Cadastrado")
+  // }
+
+
+  const onRowsPerPageChange = React.useCallback((e: any) => {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
-  
-  
+
+
   const filteredItems = React.useMemo(() => {
     let filteredUsers = [...users];
 
@@ -251,15 +322,15 @@ export default function App() {
   }, [users, filterValue]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
-  
-  
+
+
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
     return filteredItems.slice(start, end);
   }, [page, filteredItems, rowsPerPage]);
-  
+
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a, b) => {
       const first = a[sortDescriptor.column];
@@ -279,18 +350,18 @@ export default function App() {
     }
   }, []);
 
-  const onClear = React.useCallback(()=>{
+  const onClear = React.useCallback(() => {
     setFilterValue("")
     setPage(1)
-  },[])
-  
-  
-  const renderCell = React.useCallback((usina: UserInterface, columnKey:string) => {
+  }, [])
+
+
+  const renderCell = React.useCallback((usina: UserInterface, columnKey: string) => {
     const cellValue = getKeyValue(usina, columnKey);
 
     switch (columnKey) {
       case "nome":
-        return(
+        return (
           <Link href="usina/1">
             <div className="flex flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
@@ -315,8 +386,8 @@ export default function App() {
         );
       default:
         return <div className="flex flex r items-center gap-2">
-        <p className="text-bold text-small capitalize">{cellValue}</p>
-      </div>
+          <p className="text-bold text-small capitalize">{cellValue}</p>
+        </div>
     }
   }, []);
 
@@ -324,18 +395,18 @@ export default function App() {
     return (
       <div className="flex w-full flex-col  pt-10 px-10 gap-4">
         <div className="flex justify-between gap-3 items-end">
-        <Input
+          <Input
             isClearable
             className="w-full sm:max-w-[44%]"
             placeholder="Procura pelo Nome..."
-            startContent={<FaSearch  />}
+            startContent={<FaSearch />}
             value={filterValue}
             onClear={() => onClear()}
             onValueChange={onSearchChange}
           />
-          
+
           <div className="flex gap-3">
-            
+
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button size="lg" endContent={<FaChevronDown className="text-small" />} variant="flat">
@@ -357,15 +428,15 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button color="primary" onPress={onOpen} size="lg"   endContent={<FaPlus color="primary"/>}>
-            Cadastrar usuário
+            <Button color="primary" onPress={onOpen} size="lg" endContent={<FaPlus color="primary" />}>
+              Cadastrar usuário
             </Button>
           </div>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-default-600 ">Total {users.length} usuários na usina</span>
           <label className="flex items-center text-default-600 ">
-           Linhas por página
+            Linhas por página
             <select
               className="bg-transparent outline-none text-default-600 "
               onChange={onRowsPerPageChange}
@@ -376,76 +447,73 @@ export default function App() {
             </select>
           </label>
         </div>
-        <div className="flex justify-center items-center gap-3"> 
-      <Card>
-        <CardBody className="px-8 py-5">
-          <h3 className="text-xl max-w-25  text-center">Capacidade</h3>
-          <h3  className="text-xl max-w-26  text-center"> de Geração</h3>
-          <p className=" text-center text-4xl font-semibold !important">2000kw</p>
-        </CardBody>
-      </Card>
-      <Card>
-        <CardBody className="px-8 py-5">
-          <h3 className="text-xl  text-center">Em uso</h3>
-          <h3  className="text-xl max-w-26  text-center"> por clientes</h3>
-          <h2 className=" text-center text-4xl font-semibold !important">1500kw</h2>
-        </CardBody>
-      </Card>
-      <Card >
-        <CardBody className="px-8 py-5">
-          <h3  className="text-xl max-w-26   text-center">Disponível para </h3>
-          <h3  className="text-xl max-w-26    text-center"> novos usuários</h3>
-          <h2 className=" text-center text-4xl   font-semibold !important">500kw</h2>
-        </CardBody>
-      </Card>
-    </div>
+        <div className="flex justify-center items-center gap-3">
+          <Card>
+            <CardBody className="px-8 py-5">
+              <h3 className="text-xl max-w-25  text-center">Capacidade</h3>
+              <h3 className="text-xl max-w-26  text-center"> de Geração</h3>
+              <p className=" text-center text-4xl font-semibold !important">2000kw</p>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody className="px-8 py-5">
+              <h3 className="text-xl  text-center">Em uso</h3>
+              <h3 className="text-xl max-w-26  text-center"> por clientes</h3>
+              <h2 className=" text-center text-4xl font-semibold !important">1500kw</h2>
+            </CardBody>
+          </Card>
+          <Card >
+            <CardBody className="px-8 py-5">
+              <h3 className="text-xl max-w-26   text-center">Disponível para </h3>
+              <h3 className="text-xl max-w-26    text-center"> novos usuários</h3>
+              <h2 className=" text-center text-4xl   font-semibold !important">500kw</h2>
+            </CardBody>
+          </Card>
+        </div>
       </div>
     );
   }, [
     filterValue,
     visibleColumns,
     onRowsPerPageChange,
-    
-  ]);
 
+  ]);
 
   return (
     <>
+      <Table className="px-10" aria-label="tablea de usuarios"
+        topContent={topContent}
+        topContentPlacement="outside"
+        sortDescriptor={sortDescriptor}
+        onSortChange={setSortDescriptor}
+        bottomContent={
+          <div className="flex w-full justify-center">
 
-      
-    <Table className="px-10" aria-label="tablea de usuarios"
-    topContent={topContent}
-    topContentPlacement="outside"
-    sortDescriptor={sortDescriptor}
-    onSortChange={setSortDescriptor}
-     bottomContent={
-      <div className="flex w-full justify-center">
-        
-        <Pagination
-          isCompact
-          showControls
-          showShadow
-          color="primary"
-          page={page}
-          total={pages}
-          onChange={(page) => setPage(page)}
-        />
-      </div>
-    } >
-      <TableHeader columns={headerColumns}>
-        {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
-      </TableHeader>
-      <TableBody emptyContent={"Nenhum Usina encontrada."} items={sortedItems}>
-        {(item: Usina) => (
-          <TableRow key={item.id}>
-            {(columnKey: any) => <TableCell >{renderCell(item,columnKey)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-      
-      <Modal 
-        isOpen={isOpen} 
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="primary"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        } >
+        <TableHeader columns={headerColumns}>
+          {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
+        </TableHeader>
+        <TableBody emptyContent={"Nenhum Usina encontrada."} items={sortedItems}>
+          {(item: Usina) => (
+            <TableRow key={item.id}>
+              {(columnKey: any) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      <Modal
+        isOpen={isOpen}
         onOpenChange={onOpenChange}
         placement="top-center"
         scrollBehavior={scrollBehavior}
@@ -457,53 +525,85 @@ export default function App() {
               <ModalBody>
                 <Input
                   autoFocus
-                 
                   label="Nome"
                   placeholder=""
                   variant="bordered"
+                  value={nomeCadastro}
+                  onChange={(e) => setNomeCadastro(e.target.value)}
                 />
                 <Input
                   autoFocus
-                 
-                  label="Endereço"
-
+                  label="Email"
                   variant="bordered"
+                  value={emailCadastro}
+                  onChange={(e) => setEmailCadastro(e.target.value)}
                 />
-               <DatePicker label="Data Nascimento" />
-               <Input autoFocus label="CPF/CNPJ" variant="bordered" />
-                <Input autoFocus label="Email" variant="bordered" />
-                <Input autoFocus label="UC" variant="bordered" />
-                <Input autoFocus label="Consumo Médio" variant="bordered" />
+                <Input
+                  autoFocus
+                  label="Endereço"
+                  variant="bordered"
+                  value={enderecoCadastro}
+                  onChange={(e) => setEnderecoCadastro(e.target.value)}
+                />
+                <Input
+                  autoFocus
+                  label="Telefone"
+                  variant="bordered"
+                  value={telefoneCadastro}
+                  onChange={(e) => setTelefoneCadastro(e.target.value)}
+                />
+                <DatePicker label="Data Nascimento" onChange={(e) => { setDataNascimentoCadastro(e.toString()) }} />
+                <Input
+                  autoFocus
+                  label="CPF/CNPJ"
+                  variant="bordered"
+                  value={cpfcnpjCadastro}
+                  onChange={(e) => setCpfcnpjCadastro(e.target.value)}
+                />
+                <Input
+                  autoFocus
+                  label="UC"
+                  variant="bordered"
+                  value={ucCadastro}
+                  onChange={(e) => setUcCadastro(e.target.value)}
+                />
+                <Input
+                  autoFocus
+                  label="Consumo Médio"
+                  variant="bordered"
+                  value={consumoMedioCadastro}
+                  onChange={(e) => setConsumoMedioCadastro(e.target.value)}
+                />
                 <Select
-                items={plans}
-                label="Plano de adesão"
-                placeholder="Selecione um plano"
-  
-              >
-                {(plan) => <SelectItem key={plan.value}>{plan.label}</SelectItem>}
-              </Select>
+                  items={plans}
+                  label="Plano de adesão"
+                  placeholder="Selecione um plano"
+                  value={planoCadastro}
+                  onChange={(e) => setPlanoCadastro(e.target.value)}
+                >
+                  {(plan) => <SelectItem key={plan.value}>{plan.label}</SelectItem>}
+                </Select>
 
-              <Select
-                items={tarifas}
-                label="Tarifa"
-                placeholder="Selecione uma tarifa"
-  
-              >
-                {(tarifa) => <SelectItem key={tarifa.value}>{tarifa.label}</SelectItem>}
-              </Select>
-                
-                
+                <Select
+                  items={tarifas}
+                  label="Tarifa"
+                  placeholder="Selecione uma tarifa"
+                  value={tarifaCadastro}
+                  onChange={(e) => setTarifaCadastro(e.target.value)}
+                >
+                  {(tarifa) => <SelectItem key={tarifa.value}>{tarifa.label}</SelectItem>}
+                </Select>
               </ModalBody>
               <ModalFooter>
-              
-                <Button color="primary" onPress={CadastrarUsuário}>
-                  Cadastrar
+                <Button color="primary" onPress={CadastrarUsuario}>
+                  {loading ? <Spinner size="sm" color="white" /> : 'Cadastrar'}
                 </Button>
               </ModalFooter>
             </>
           )}
         </ModalContent>
       </Modal>
+
 
 
     </>

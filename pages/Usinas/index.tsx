@@ -162,6 +162,8 @@ export default function App() {
           setPotenciaInstaladaUsina(data.potenciaInstalada);
           setPotenciaNominalUsina(data.potenciaNominal);
           setCapacidadeGeracaoUsina(data.capacidadeGeracao);
+
+          setUsinas(data.length)
         } catch (error) {
           console.error("Erro ao buscar dados da usina", error);
         }
