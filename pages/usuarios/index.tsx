@@ -210,7 +210,15 @@ export default function App() {
     setPlanoCadastro(value.target.value);
   };
 
+  const planoMapping: { [key: number]: string } = {
+    1: 'mensal',
+    3: 'trimestral',
+    12: 'anual'
+  };
+
   const CadastrarUsuario = async () => {
+    const planoMapped = planoMapping[parseInt(planoCadastro)];
+
     const userBody: any = {
       nome: nomeCadastro,
       email: emailCadastro,
@@ -218,20 +226,13 @@ export default function App() {
       data_nascimento: dataNascimentoCadastro,
       cpfcnpj: cpfcnpjCadastro,
       telefone: telefoneCadastro,
-
     };
 
     if (tipoUsuario == "Cliente") {
       userBody['endereco'] = enderecoCadastro;
       userBody['consumoMedio'] = parseInt(consumoMedioCadastro);
       userBody['usina'] = parseInt(usinaCadastro);
-      if (userBody['plano'] === 1) {
-        planoCadastro === "mensal";
-      } else if (userBody['plano'] === 3) {
-        planoCadastro === "trimestral";
-      } else if (userBody['plano'] === 12) {
-        planoCadastro === "anual";
-      }
+      userBody['plano'] = planoMapped;
       userBody['tarifa'] = tarifaCadastro;
       userBody['uc'] = ucCadastro;
     };
@@ -525,7 +526,7 @@ export default function App() {
               <ModalFooter>
 
                 <Button color="primary" onPress={CadastrarUsuario}>
-                  Cadastrar
+                  {loading ? <Spinner size="sm" color="white" /> : 'Cadastrar'}
                 </Button>
               </ModalFooter>
             </>
