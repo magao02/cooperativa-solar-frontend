@@ -139,6 +139,8 @@ interface UsinaData {
   potenciaInstalada: number;
   potenciaNominal: number;
   capacidadeGeracao: number;
+  capacidadeEmUso: number;
+  capacidadeDisponivel: number;
 }
 
 export default function App() {
@@ -163,6 +165,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [dadosUsina, setDadosUsina] = useState<UsinaData | null>(null);
   const [capacidadeGeracao, setCapacidadeGeracao] = useState<number | null>(null);
+  const [capacidadeEmUso, setCapacidadeEmUso] = useState<number | null>(null);
+  const [capacidadeDisponivel, setCapacidadeDisponivel] = useState<number | null>(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const router = useRouter();
   const { id } = router.query;
@@ -196,9 +200,12 @@ export default function App() {
   const fetchUsinaData = async (id: number) => {
     try {
       const usinaData = await getUsinaById(id);
+      setUsers(usinaData.usuarios)
       setDadosUsina(usinaData);
       setCapacidadeGeracao(usinaData.capacidadeGeracao);
-      console.log("Dados da usina:", usinaData);
+      setCapacidadeDisponivel(usinaData.capacidadeDisponivel);
+      setCapacidadeEmUso(usinaData.capacidadeEmUso);
+      console.log("Dados da usina:", usinaData.usuarios);
       setIsDataLoaded(true);
     } catch (error) {
       console.log("Erro ao buscar dados da usina", error);
@@ -213,10 +220,6 @@ export default function App() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    console.log("Capacidade de Geração:", capacidadeGeracao);
-  }, [capacidadeGeracao]);
 
   const CadastrarUsuario = async () => {
     const planoMapped = planoMapping[parseInt(planoCadastro)];
@@ -241,9 +244,14 @@ export default function App() {
     try {
       setLoading(true);
       const data = await createUser(userBody);
-      console.log('Usuário cadastrado com sucesso', data);
 
-      // fetchUserData();
+      if (typeof id === "string") {
+        const numericId = parseInt(id, 10);
+        if (!isNaN(numericId)) {
+          fetchUsinaData(numericId);
+        }
+      }
+      
       onOpenChange();
 
       setNomeCadastro('');
@@ -268,30 +276,6 @@ export default function App() {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
-
-
-  useEffect(() => {
-    const fetchUsers = async (id: number) => {
-      setLoading(true);
-      try {
-        const usersData = await findUsersByUsinaId(id);
-        setUsers(usersData);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (typeof id === 'number') {
-      fetchUsers(id);
-    } else if (typeof id === 'string') {
-      const parsedId = parseInt(id, 10);
-      if (!isNaN(parsedId)) {
-        fetchUsers(parsedId);
-      }
-    }
-  }, [id]);
 
   const handleDeleteUsina = async (id: number) => {
     try {
@@ -363,12 +347,16 @@ export default function App() {
     switch (columnKey) {
       case "nome":
         return (
-          <Link href="usina/1">
+          <Link href={`usina/${id}`}>
             <div className="flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
           </Link>
         )
+      case "plano":
+        return <div className="flex r items-center gap-2">
+          {cellValue !== null ? cellValue : "Não contratado"}
+        </div>
       default:
         return <div className="flex r items-center gap-2">
           <p className="text-bold text-small capitalize">{cellValue}</p>
@@ -433,7 +421,7 @@ export default function App() {
               <h3 className="text-xl max-w-25 text-center">Capacidade</h3>
               <h3 className="text-xl max-w-26 text-center"> de Geração</h3>
               <p className="text-center text-4xl font-semibold !important">
-                {isDataLoaded ? (capacidadeGeracao !== null ? capacidadeGeracao : <Spinner />) : <Spinner />}
+                {isDataLoaded ? (capacidadeGeracao !== null ? capacidadeGeracao : <Spinner />) : <Spinner />} kw
               </p>
             </CardBody>
           </Card>
@@ -441,14 +429,18 @@ export default function App() {
             <CardBody className="px-8 py-5">
               <h3 className="text-xl text-center">Em uso</h3>
               <h3 className="text-xl max-w-26 text-center"> por clientes</h3>
-              <h2 className="text-center text-4xl font-semibold !important">1500kw</h2>
+              <p className="text-center text-4xl font-semibold !important">
+                {isDataLoaded ? (capacidadeEmUso !== null ? capacidadeEmUso : <Spinner />) : <Spinner />} kw
+              </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="px-8 py-5">
               <h3 className="text-xl max-w-26 text-center">Disponível para </h3>
               <h3 className="text-xl max-w-26 text-center"> novos usuários</h3>
-              <h2 className="text-center text-4xl font-semibold !important">500kw</h2>
+              <p className="text-center text-4xl font-semibold !important">
+                {isDataLoaded ? (capacidadeDisponivel !== null ? capacidadeDisponivel : <Spinner />) : <Spinner />} kw
+              </p>
             </CardBody>
           </Card>
         </div>

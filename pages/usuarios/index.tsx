@@ -29,7 +29,6 @@ import {
 } from "@nextui-org/react";
 import { Select, SelectItem } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
-import { Card, CardBody } from "@nextui-org/react";
 import { FaPlus } from "react-icons/fa6";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
@@ -49,7 +48,7 @@ interface UserInterface {
   cpf: String,
   email: String,
   uc: String,
-  planoAdesao: String,
+  plano: String,
   consumoMedio: number,
   tipoConta: String,
 }
@@ -75,7 +74,7 @@ const columns = [
   },
 
   {
-    key: "planoAdesao",
+    key: "plano",
     label: "Plano de Adesão",
   },
   {
@@ -93,7 +92,7 @@ const columns = [
   }
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["tipoConta", "uc", "nome", "cpfcnpj", "planoAdesao", "capacidadeClientes", "capacidadeGeracao", "endereco", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["tipoConta", "uc", "nome", "cpfcnpj", "plano", "consumoMedio", "capacidadeClientes", "capacidadeGeracao", "endereco", "actions"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -327,7 +326,7 @@ export default function App() {
     switch (columnKey) {
       case "nome":
         return (
-          <Link href="usuario/1">
+          <Link href={`usuario/${user.id}`}>
             <div className="flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
@@ -506,9 +505,9 @@ export default function App() {
                 </Select>
                 {tipoUsuario == "Cliente" && (
                   <>
-                    <Input autoFocus label="Endereço" variant="bordered" />
-                    <Input autoFocus label="UC" variant="bordered" />
-                    <Input autoFocus label="Consumo Médio" variant="bordered" />
+                    <Input autoFocus label="Endereço" variant="bordered" onValueChange={setEnderecoCadastro}/>
+                    <Input autoFocus label="UC" variant="bordered" onValueChange={setUcCadastro}/>
+                    <Input autoFocus label="Consumo Médio" variant="bordered" onValueChange={setConsumoMedioCadastro}/>
 
                     <Select
                       items={plans}
