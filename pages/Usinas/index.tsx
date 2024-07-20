@@ -32,7 +32,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { deleteUsina, getAllUsersData, getAllUsinasData, getUsinaById, updateUsina, usinaCreate } from "./api";
+import { deleteUsina, getAllGestorUsersData, getAllUsersData, getAllUsinasData, getUsinaById, updateUsina, usinaCreate } from "./api";
 //Interfaces
 interface UsinaColumn {
   key: string;
@@ -89,11 +89,11 @@ const columns = [
     label: "Capacidade Clientes",
   },
   {
-    key: "numeroClientes",
+    key: "quantidadeClientes",
     label: "Número de Clientes",
   },
   {
-    key: "vagasClientes",
+    key: "VagasClientes",
     label: "Vagas dos Clientes",
   },
   {
@@ -150,6 +150,7 @@ export default function App() {
   };
 
   const closeEditUsinaModal = () => {
+    fetchDataUsinas();
     setEditUsinaModalOpen(false);
   }
 
@@ -224,7 +225,7 @@ export default function App() {
 
   const fetchUserData = async () => {
     try {
-      const userData = await getAllUsersData();
+      const userData = await getAllGestorUsersData();
       setUsers(userData || []);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -375,6 +376,13 @@ export default function App() {
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
           </Link>
+        );
+      case "VagasClientes":
+      case "capacidadeClientes":
+        return (
+          <div className="flex items-center gap-2">
+            <p className="text-bold text-small capitalize">{parseInt(cellValue)}</p>
+          </div>
         );
       case "actions":
         return (

@@ -6,6 +6,11 @@ export const getAllUsersData = async () => {
   return response.data;
 }
 
+export const getAllGestorUsersData = async () => {
+  const response = await api.get("/users/tipo/Gestor");
+  return response.data;
+}
+
 export const getAllUsinasData = async () => {
   const response = await api.get("/usinas");
   return response.data;
