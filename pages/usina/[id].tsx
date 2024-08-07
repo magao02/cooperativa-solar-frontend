@@ -30,11 +30,10 @@ import { Select, SelectItem } from "@nextui-org/react";
 import { DatePicker } from "@nextui-org/date-picker";
 import { Card, CardBody } from "@nextui-org/react";
 import { FaPlus } from "react-icons/fa6";
-import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { createUser, deleteUsina, findUsersByUsinaId, getUsinaById } from "./api";
+import { createUser, getUsinaById } from "./api";
 import { useRouter } from "next/router";
 
 interface UserColumn {
@@ -160,7 +159,7 @@ export default function App() {
   const [page, setPage] = useState(1);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
-  const [scrollBehavior, setScrollBehavior] = React.useState("inside");
+  const [scrollBehavior, setScrollBehavior] = React.useState<"inside" | "outside" | "normal">("inside");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [loading, setLoading] = useState(false);
   const [dadosUsina, setDadosUsina] = useState<UsinaData | null>(null);
@@ -180,10 +179,26 @@ export default function App() {
     }
     return undefined;
   })();
-  const [sortDescriptor, setSortDescriptor] = React.useState({
+
+  type SortDirection = 'ascending' | 'descending';
+
+  type SortDescriptor = {
+    column: string;
+    direction: SortDirection;
+  };
+
+  const handleSortChange = (descriptor: SortDescriptor) => {
+    setSortDescriptor({
+      column: descriptor.column || 'name', // Valor padrão se undefined
+      direction: descriptor.direction || 'ascending', // Valor padrão se undefined
+    });
+  };
+
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: "name",
     direction: "ascending",
   });
+  
   const hasSearchFilter = Boolean(filterValue);
 
 
@@ -277,19 +292,6 @@ export default function App() {
     setPage(1);
   }, []);
 
-  const handleDeleteUsina = async (id: number) => {
-    try {
-      if (idConvertedForNumber) {
-        await deleteUsina(id);
-        fetchUsinaData(id);
-      } else {
-        console.log("Não foi possível pegar o ID da usina")
-      }
-    } catch (error) {
-      console.log("Erro ao excluir a usina", error);
-    }
-  };
-
   const filteredItems = useMemo(() => {
     if (loading) {
       return [];
@@ -298,7 +300,7 @@ export default function App() {
     let filteredUsers = [...users];
 
     if (hasSearchFilter) {
-      filteredUsers = filteredUsers.filter((usina) =>
+      filteredUsers = filteredUsers.filter((usina: UsinaData) =>
         usina.nome.toLowerCase().includes(filterValue.toLowerCase()),
       );
     }
@@ -307,6 +309,10 @@ export default function App() {
   }, [users, filterValue, loading]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
+
+  const handleSelectionChange = (keys: any) => {
+    setVisibleColumns(new Set(keys));
+  };
 
 
   const items = React.useMemo(() => {
@@ -318,8 +324,8 @@ export default function App() {
 
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a, b) => {
-      const first = a[sortDescriptor.column];
-      const second = b[sortDescriptor.column];
+      const first = (a as any)[sortDescriptor.column];
+      const second = (b as any)[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
@@ -390,7 +396,7 @@ export default function App() {
                 closeOnSelect={false}
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
-                onSelectionChange={setVisibleColumns}
+                onSelectionChange={handleSelectionChange}
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.key} className="capitalize">
@@ -449,7 +455,7 @@ export default function App() {
       <Table className="px-10" aria-label="tablea de usuarios"
         topContentPlacement="outside"
         sortDescriptor={sortDescriptor}
-        onSortChange={setSortDescriptor}
+        onSortChange={handleSelectionChange}
         bottomContent={
           <div className="flex w-full justify-center">
 
@@ -468,7 +474,7 @@ export default function App() {
           {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
         </TableHeader>
         <TableBody emptyContent={"Nenhum usuário encontrado para essa usina."} items={sortedItems}>
-          {(item: Usina) => (
+          {(item: UserInterface) => (
             <TableRow key={item.id}>
               {(columnKey: any) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
             </TableRow>

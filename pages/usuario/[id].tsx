@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Chip } from "@nextui-org/react";
 import {
   Table,
@@ -90,7 +90,7 @@ export default function App() {
   const [page, setPage] = useState(1);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
-  const [scrollBehavior, setScrollBehavior] = React.useState("inside");
+  const [scrollBehavior, setScrollBehavior] = React.useState<"inside" | "outside" | "normal">("inside");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [dataVencimento, setDataVencimento] = useState("");
   const [mesReferencia, setMesReferencia] = useState("");
@@ -98,10 +98,24 @@ export default function App() {
   const [consumo, setConsumo] = useState<number | null>(null);
   const router = useRouter();
   const { id } = router.query;
-  const [sortDescriptor, setSortDescriptor] = React.useState({
+  type SortDirection = 'ascending' | 'descending';
+
+  type SortDescriptor = {
+    column: string;
+    direction: SortDirection;
+  };
+
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: "name",
     direction: "ascending",
   });
+
+  const handleSortChange = (descriptor: SortDescriptor) => {
+    setSortDescriptor({
+      column: descriptor.column || 'name', // Valor padrão se undefined
+      direction: descriptor.direction || 'ascending', // Valor padrão se undefined
+    });
+  };
   const hasSearchFilter = Boolean(filterValue);
 
   const handleValueChange = (value: string) => {
@@ -116,29 +130,33 @@ export default function App() {
 
 
   const CadastrarUsuário = async () => {
-    const numericId = parseInt(id);
-
+    const idString = typeof id === 'string' ? id : '';
+    const numericId = parseInt(idString, 10);
+  
+    // Define um valor padrão para consumo se for null
+    const consumoValue = consumo !== null ? consumo : 0; // Use um valor padrão apropriado para o seu caso
+  
     const faturaBody = {
       usuario: numericId,
       dataVencimento: dataVencimento,
       mesReferencia: mesReferencia,
       anoReferencia: anoReferencia,
-      consumo: consumo,
+      consumo: consumoValue,
     };
-
+  
     try {
-      const data = await createFatura(faturaBody)
-      onOpenChange()
-
+      const data = await createFatura(faturaBody);
+      onOpenChange();
     } catch (error) {
-      console.log("Erro ao cadastrar fatura", error)
-      console.log(faturaBody)
+      console.log("Erro ao cadastrar fatura", error);
+      console.log(faturaBody);
     }
-  }
+  };
 
   const fetchUserData = async () => {
     try {
-      const numericId = parseInt(id);
+      const idString = typeof id === 'string' ? id : '';
+      const numericId = parseInt(idString, 10);
       const userData = await getUsersData(numericId);
       setUsers(userData || []);
       console.log(userData)
@@ -163,7 +181,7 @@ export default function App() {
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((usina) =>
-        usina.mes.toLowerCase().includes(filterValue.toLowerCase()),
+        usina.mesReferencia.toLowerCase().includes(filterValue.toLowerCase()),
       );
     }
 
@@ -182,13 +200,17 @@ export default function App() {
 
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a, b) => {
-      const first = a[sortDescriptor.column];
-      const second = b[sortDescriptor.column];
+      const first = (a as any)[sortDescriptor.column];
+      const second = (b as any)[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
+
+  const handleSelectionChange = (keys: any) => {
+    setVisibleColumns(new Set(keys));
+  };
 
   const onSearchChange = React.useCallback((value: string) => {
     if (value) {
@@ -262,7 +284,7 @@ export default function App() {
                 closeOnSelect={false}
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
-                onSelectionChange={setVisibleColumns}
+                onSelectionChange={handleSelectionChange}
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.key} className="capitalize">
@@ -309,7 +331,7 @@ export default function App() {
         topContent={topContent}
         topContentPlacement="outside"
         sortDescriptor={sortDescriptor}
-        onSortChange={setSortDescriptor}
+        onSortChange={handleSelectionChange}
         bottomContent={
           <div className="flex w-full justify-center">
 

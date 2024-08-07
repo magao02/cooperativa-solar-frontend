@@ -153,14 +153,28 @@ export default function App() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [loading, setLoading] = useState(false)
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
-  const [scrollBehavior, setScrollBehavior] = React.useState("inside");
+  const [scrollBehavior, setScrollBehavior] = React.useState<"inside" | "outside" | "normal">("inside");
 
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [tipoUsuario, setTipoUsuario] = useState(null);
-  const [sortDescriptor, setSortDescriptor] = React.useState({
+  type SortDirection = 'ascending' | 'descending';
+
+  type SortDescriptor = {
+    column: string;
+    direction: SortDirection;
+  };
+
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: "name",
     direction: "ascending",
   });
+
+  const handleSortChange = (descriptor: SortDescriptor) => {
+    setSortDescriptor({
+      column: descriptor.column || 'name', // Valor padrão se undefined
+      direction: descriptor.direction || 'ascending', // Valor padrão se undefined
+    });
+  };
   const [nomeCadastro, setNomeCadastro] = useState("");
   const [emailCadastro, setEmailCadastro] = useState("");
   const [telefoneCadastro, setTelefoneCadastro] = useState("");
@@ -267,7 +281,7 @@ export default function App() {
     return columns.filter((column) => Array.from(visibleColumns).includes(column.key));
   }, [visibleColumns]);
 
-  const onRowsPerPageChange = React.useCallback((e) => {
+  const onRowsPerPageChange = React.useCallback((e: any) => {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
@@ -297,8 +311,8 @@ export default function App() {
 
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a, b) => {
-      const first = a[sortDescriptor.column];
-      const second = b[sortDescriptor.column];
+      const first = (a as any)[sortDescriptor.column];
+      const second = (b as any)[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
@@ -318,6 +332,10 @@ export default function App() {
     setFilterValue("")
     setPage(1)
   }, [])
+
+  const handleSelectionChange = (keys: any) => {
+    setVisibleColumns(new Set(keys));
+  };
 
 
   const renderCell = React.useCallback((user: UserInterface, columnKey: string) => {
@@ -386,7 +404,7 @@ export default function App() {
                 closeOnSelect={false}
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
-                onSelectionChange={setVisibleColumns}
+                onSelectionChange={handleSelectionChange}
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.key} className="capitalize">
@@ -437,7 +455,7 @@ export default function App() {
         topContent={topContent}
         topContentPlacement="outside"
         sortDescriptor={sortDescriptor}
-        onSortChange={setSortDescriptor}
+        onSortChange={handleSelectionChange}
         bottomContent={
           <div className="flex w-full justify-center">
 
@@ -456,7 +474,7 @@ export default function App() {
           {(column: UserColumn) => <TableColumn className="tableColumnTitle  justify-center" key={column.key}>{column.label}</TableColumn>}
         </TableHeader>
         <TableBody emptyContent={"Nenhum usuário encontrado."} items={sortedItems}>
-          {(item: Usina) => (
+          {(item: UserInterface) => (
             <TableRow key={item.id}>
               {(columnKey: any) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
             </TableRow>

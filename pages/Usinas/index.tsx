@@ -15,6 +15,7 @@ import {
   DropdownMenu,
   DropdownItem,
   User,
+  SortDescriptor,
 
 } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
@@ -130,10 +131,24 @@ export default function App() {
   const [editUsinaModalOpen, setEditUsinaModalOpen] = useState(false);
   const [usinaData, setUsinaData] = useState(null);
 
-  const [sortDescriptor, setSortDescriptor] = React.useState({
+  type SortDirection = 'ascending' | 'descending';
+
+  type SortDescriptor = {
+    column: string;
+    direction: SortDirection;
+  };
+
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: "name",
     direction: "ascending",
   });
+
+  const handleSortChange = (descriptor: SortDescriptor) => {
+    setSortDescriptor({
+      column: descriptor.column || 'name', // Valor padrão se undefined
+      direction: descriptor.direction || 'ascending', // Valor padrão se undefined
+    });
+  };
 
   const openDeleteConfirmationModal = () => {
     fetchDataUsinas();
@@ -343,8 +358,8 @@ export default function App() {
 
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a, b) => {
-      const first = a[sortDescriptor.column];
-      const second = b[sortDescriptor.column];
+      const first = (a as any)[sortDescriptor.column];
+      const second = (b as any)[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
@@ -364,6 +379,10 @@ export default function App() {
     setFilterValue("")
     setPage(1)
   }, [])
+
+  const handleSelectionChange = (keys: any) => {
+    setVisibleColumns(new Set(keys));
+  };
 
   const renderCell = React.useCallback((usina: Usina, columnKey: string) => {
     const cellValue = getKeyValue(usina, columnKey);
@@ -443,7 +462,7 @@ export default function App() {
                 closeOnSelect={false}
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
-                onSelectionChange={setVisibleColumns}
+                onSelectionChange={handleSelectionChange}
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.key} className="capitalize">
@@ -543,7 +562,7 @@ export default function App() {
         topContent={topContent}
         topContentPlacement="outside"
         sortDescriptor={sortDescriptor}
-        onSortChange={setSortDescriptor}
+        onSortChange={handleSelectionChange}
         bottomContent={
           <div className="flex w-full justify-center">
 
@@ -564,7 +583,7 @@ export default function App() {
         <TableBody emptyContent={loading ? <Spinner label="Carregando..." /> : "Nenhuma usina encontrada"}>
           {sortedItems.map((usina) => (
             <TableRow key={usina.id}>
-              {(columnKey) => <TableCell>{renderCell(usina, columnKey)}</TableCell>}
+              {(columnKey: any) => <TableCell>{renderCell(usina, columnKey)}</TableCell>}
             </TableRow>
           ))}
         </TableBody>
