@@ -23,17 +23,17 @@ export default function Menu() {
       </NavbarBrand>
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem isActive={activeNavItem == 'usinas'}>
-          <Link color={activeNavItem == 'usinas' ? "undefined" : 'foreground'}  href="/Usinas">
+          <Link color={activeNavItem == 'usinas' ? "primary" : 'foreground'}  href="/Usinas">
             USINAS
           </Link>
         </NavbarItem>
         <NavbarItem isActive={activeNavItem == 'usuarios'}>
-          <Link color={activeNavItem == 'usuarios' ? "undefined" : 'foreground'} href="/usuarios" aria-current="page">
+          <Link color={activeNavItem == 'usuarios' ? "primary" : 'foreground'} href="/usuarios" aria-current="page">
             USUÁRIOS
           </Link>
         </NavbarItem>
         <NavbarItem isActive={activeNavItem == 'configs'}>
-          <Link color={activeNavItem == 'configs' ? "undefined" : 'foreground'} href="configs">
+          <Link color={activeNavItem == 'configs' ? "primary" : 'foreground'} href="configs">
             CONFIGURAÇÕES
           </Link>
         </NavbarItem>
