@@ -32,7 +32,7 @@ import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { createFatura, getUsersData } from "./api";
+import { createFatura, getUsersData } from "../../services/api-usuario";
 //Interfaces
 interface UserColumn {
   key: string;

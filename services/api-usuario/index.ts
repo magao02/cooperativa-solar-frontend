@@ -1,5 +1,5 @@
 import { api } from "@/data/services/api";
-import { FaturaCreateRequest } from "../types";
+import { FaturaCreateRequest } from "../../types/types-usuario";
 
 export const createFatura = async (faturaBody: FaturaCreateRequest) => {
   const response = await api.post("/faturas", faturaBody);

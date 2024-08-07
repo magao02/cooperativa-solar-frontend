@@ -1,5 +1,5 @@
 import { api } from "@/data/services/api";
-import { UserCreateRequest } from "../types";
+import { UserCreateRequest } from "../../types/types-usina";
 
 export const createUser = async (userBody: UserCreateRequest) => {
   const response = await api.post("/users", userBody);

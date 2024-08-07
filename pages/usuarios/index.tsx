@@ -34,7 +34,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { createUser, getAllUsersData } from "./api/api";
+import { createUser, getAllUsersData } from "../../services/api-usuarios/api";
 //Interfaces
 interface UserColumn {
   key: string;

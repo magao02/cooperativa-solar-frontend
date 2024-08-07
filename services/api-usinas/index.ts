@@ -1,5 +1,6 @@
+
 import { api } from "@/data/services/api"
-import { EditUsinaRequest, UsinaCreateRequest } from "../types/types";
+import { EditUsinaRequest, UsinaCreateRequest } from "../../types/types-usinas/types";
 
 export const getAllUsersData = async () => {
   const response = await api.get("/users");

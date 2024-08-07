@@ -33,7 +33,7 @@ import { FaPlus } from "react-icons/fa6";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { createUser, getUsinaById } from "./api";
+import { createUser, getUsinaById } from "../../services/api-usina";
 import { useRouter } from "next/router";
 
 interface UserColumn {

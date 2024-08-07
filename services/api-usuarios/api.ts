@@ -1,5 +1,5 @@
 import { api } from "@/data/services/api";
-import { UserCreateRequest } from "../types";
+import { UserCreateRequest } from "../../types/types-usuarios";
 
 export const getAllUsersData = async () => {
   const response = await api.get("/users");

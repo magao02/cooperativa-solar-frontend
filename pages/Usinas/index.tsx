@@ -33,7 +33,7 @@ import { IoEllipsisVertical } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
-import { deleteUsina, getAllGestorUsersData, getAllUsersData, getAllUsinasData, getUsinaById, updateUsina, usinaCreate } from "./api";
+import { deleteUsina, getAllGestorUsersData, getAllUsersData, getAllUsinasData, getUsinaById, updateUsina, usinaCreate } from "../../services/api-usinas";
 //Interfaces
 interface UsinaColumn {
   key: string;
