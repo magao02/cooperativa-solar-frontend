@@ -297,7 +297,7 @@ export default function App() {
     }
 
     return filteredUsers;
-  }, [users, filterValue]);
+  }, [users, filterValue, hasSearchFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -439,7 +439,10 @@ export default function App() {
     filterValue,
     visibleColumns,
     onRowsPerPageChange,
-
+    onClear,
+    onOpen,
+    onSearchChange,
+    users.length
   ]);
 
 

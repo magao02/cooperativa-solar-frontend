@@ -343,7 +343,7 @@ export default function App() {
       );
     }
     return filteredUsinas;
-  }, [usinas, filterValue]);
+  }, [usinas, filterValue, hasSearchFilter]);
 
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
@@ -496,7 +496,10 @@ export default function App() {
     filterValue,
     visibleColumns,
     onRowsPerPageChange,
-
+    onClear,
+    onOpen,
+    onSearchChange,
+    usinas.length
   ]);
   const retornaAnimacaoCadastro = () => {
     switch (animacaoCadastro) {

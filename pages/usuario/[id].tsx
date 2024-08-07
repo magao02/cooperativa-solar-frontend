@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Chip } from "@nextui-org/react";
 import {
   Table,
@@ -153,21 +153,21 @@ export default function App() {
     }
   };
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const idString = typeof id === 'string' ? id : '';
       const numericId = parseInt(idString, 10);
       const userData = await getUsersData(numericId);
       setUsers(userData || []);
-      console.log(userData)
+      console.log(userData);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
     }
-  }
+  }, [id]);
 
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [fetchUserData]);
 
 
   const onRowsPerPageChange = React.useCallback((e: any) => {
@@ -186,7 +186,7 @@ export default function App() {
     }
 
     return filteredUsers;
-  }, [users, filterValue]);
+  }, [users, filterValue, hasSearchFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -235,7 +235,7 @@ export default function App() {
       case "nome":
         return (
           <Link href="usina/1">
-            <div className="flex flex r items-center gap-2">
+            <div className="flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
           </Link>
@@ -319,7 +319,10 @@ export default function App() {
     filterValue,
     visibleColumns,
     onRowsPerPageChange,
-
+    onClear,
+    onOpen,
+    onSearchChange,
+    users.length
   ]);
 
 

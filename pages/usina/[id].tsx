@@ -234,7 +234,7 @@ export default function App() {
         fetchUsinaData(numericId);
       }
     }
-  }, []);
+  }, [id]);
 
   const CadastrarUsuario = async () => {
     const planoMapped = planoMapping[parseInt(planoCadastro)];
@@ -306,7 +306,7 @@ export default function App() {
     }
 
     return filteredUsers;
-  }, [users, filterValue, loading]);
+  }, [users, filterValue, loading, hasSearchFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -368,7 +368,7 @@ export default function App() {
           <p className="text-bold text-small capitalize">{cellValue}</p>
         </div>
     }
-  }, []);
+  }, [id]);
 
   return (
     <div>
