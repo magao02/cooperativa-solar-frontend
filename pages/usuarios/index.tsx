@@ -35,6 +35,7 @@ import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
 import { createUser, getAllUsersData } from "../../services/api-usuarios/api";
+import { toast } from "sonner";
 //Interfaces
 interface UserColumn {
   key: string;
@@ -155,6 +156,15 @@ export default function App() {
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
   const [scrollBehavior, setScrollBehavior] = React.useState<"inside" | "outside" | "normal">("inside");
 
+  const [filtroTipo, setFiltroTipo] = React.useState('');
+  const setTipoFilter = (e: any) => {
+      const tipo = e.target.value;
+
+      setFiltroTipo(tipo);
+  };
+
+  const hasTipoFilter = Boolean(filtroTipo);
+
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [tipoUsuario, setTipoUsuario] = useState(null);
   type SortDirection = 'ascending' | 'descending';
@@ -271,6 +281,7 @@ export default function App() {
       setUsinaCadastro('');
     }
     catch (error) {
+      toast.error("CPF/CNPJ tem que ser válido!")
       console.error(error);
     } finally {
       setLoading(false);
@@ -296,8 +307,14 @@ export default function App() {
       );
     }
 
+    if (hasTipoFilter) {
+      filteredUsers = filteredUsers.filter(
+        users => users.tipoConta === filtroTipo,
+      );
+    }
+
     return filteredUsers;
-  }, [users, filterValue, hasSearchFilter]);
+  }, [users, filterValue, hasSearchFilter, hasTipoFilter, filtroTipo]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -380,15 +397,27 @@ export default function App() {
     return (
       <div className="flex w-full flex-col  pt-10 px-10 gap-4">
         <div className="flex justify-between gap-3 items-end">
-          <Input
-            isClearable
-            className="w-full sm:max-w-[44%]"
-            placeholder="Procura pelo Nome..."
-            startContent={<FaSearch />}
-            value={filterValue}
-            onClear={() => onClear()}
-            onValueChange={onSearchChange}
-          />
+          <div className="flex flex-initial gap-3 w-full">
+            <Input
+              isClearable
+              className="w-full sm:max-w-[25%]"
+              placeholder="Procura pelo Nome..."
+              startContent={<FaSearch />}
+              value={filterValue}
+              onClear={() => onClear()}
+              onValueChange={onSearchChange}
+            />
+
+            <Select
+              className="sm:max-w-[20%]"
+              label="Selecione o tipo"
+              onChange={setTipoFilter}
+            >
+              <SelectItem key="Gestor">Gestor</SelectItem>
+              <SelectItem key="Admin">Admin</SelectItem>
+              <SelectItem key="Cliente">Cliente</SelectItem>
+            </Select>
+          </div>
 
           <div className="flex gap-3">
 

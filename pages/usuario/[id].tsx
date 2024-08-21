@@ -146,6 +146,7 @@ export default function App() {
   
     try {
       const data = await createFatura(faturaBody);
+      fetchUserData();
       onOpenChange();
     } catch (error) {
       console.log("Erro ao cadastrar fatura", error);
@@ -374,9 +375,9 @@ export default function App() {
               <ModalBody>
 
                 <DatePicker label="Data Vencimento" onChange={(e) => { setDataVencimento(e.toString()) }} />
-                <Input autoFocus label="Mês de Referência" variant="bordered" onValueChange={setMesReferencia} />
-                <Input autoFocus label="Ano de Referência" variant="bordered" onValueChange={setAnoReferencia} />
-                <Input autoFocus label="Consumo" variant="bordered" onValueChange={handleValueChange} />
+                <Input autoFocus label="Mês de Referência. Ex.: 01" variant="bordered" onValueChange={setMesReferencia} />
+                <Input autoFocus label="Ano de Referência. Ex.: 2024" variant="bordered" onValueChange={setAnoReferencia} />
+                <Input autoFocus label="Consumo. Ex.: 100" variant="bordered" onValueChange={handleValueChange} />
               </ModalBody>
               <ModalFooter>
 

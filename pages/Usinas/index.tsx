@@ -38,8 +38,14 @@ import { deleteUsina, getAllGestorUsersData, getAllUsersData, getAllUsinasData, 
 interface UsinaColumn {
   key: string;
   label: string;
-
 }
+
+interface UsuarioResponsavel {
+  nome: string;
+  email: string;
+  telefone: string;
+}
+
 interface Usina {
   id: number;
   nome: string;
@@ -51,6 +57,7 @@ interface Usina {
   capacidadeClientes: number;
   numeroClientes: number;
   vagasClientes: number;
+  usuarioResponsavel: UsuarioResponsavel
 }
 
 interface User {
@@ -98,13 +105,17 @@ const columns = [
     label: "Vagas dos Clientes",
   },
   {
+    key: "responsavel",
+    label: "Responsável pela Usina"
+  },
+  {
     key: "actions",
     label: "Ações",
   }
 ];
 
 
-const INITIAL_VISIBLE_COLUMNS = ["nome", "localizacao", "potenciaInstalada", "numeroClientes", "capacidadeClientes", "capacidadeGeracao", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["nome", "localizacao", "potenciaInstalada", "numeroClientes", "capacidadeClientes", "capacidadeGeracao", "responsavel", "actions"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -251,6 +262,7 @@ export default function App() {
     try {
       setLoading(true);
       const usinasData = await getAllUsinasData();
+      console.log(usinasData);
       setUsinas(usinasData || []);
     } catch (error) {
       console.error('Failed to fetch usinas:', error);
@@ -385,9 +397,18 @@ export default function App() {
   };
 
   const renderCell = React.useCallback((usina: Usina, columnKey: string) => {
+    
     const cellValue = getKeyValue(usina, columnKey);
 
     switch (columnKey) {
+      case "responsavel":
+        return(
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-bold text-small capitalize"><b>Nome:</b> {usina.usuarioResponsavel.nome}</p>
+            <p className="text-bold text-small capitalize"><b>E-mail:</b> {usina.usuarioResponsavel.email}</p>
+            <p className="text-bold text-small capitalize"><b>Telefone:</b> {usina.usuarioResponsavel.telefone}</p>
+          </div>
+        )
       case "nome":
         return (
           <Link href={`usina/${usina.id}`}>
