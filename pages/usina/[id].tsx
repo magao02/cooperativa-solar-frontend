@@ -59,7 +59,7 @@ const columns = [
   },
   {
     key: "nome",
-    label: "Nome",
+    label: "Usuários",
   },
   {
     key: "cpfcnpj",
@@ -91,7 +91,7 @@ const columns = [
   },
 ];
 
-const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpfcnpj", "consumoMedio", "tipoConta", "plano", "endereco", "email", "telefone"];
+const INITIAL_VISIBLE_COLUMNS = ["uc", "nome", "cpfcnpj", "consumoMedio", "plano", "endereco", "email", "telefone"];
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -353,7 +353,7 @@ export default function App() {
     switch (columnKey) {
       case "nome":
         return (
-          <Link href={`usina/${id}`}>
+          <Link href={`/usuario/${id}`}>
             <div className="flex r items-center gap-2">
               <p className="text-bold text-small capitalize">{cellValue}</p>
             </div>
@@ -373,7 +373,7 @@ export default function App() {
   return (
     <div>
       <div className="flex w-full flex-col pt-10 px-10 gap-4">
-        <div className="flex justify-between gap-3 items-end">
+        <div className="flex justify-between items-end">
           <Input
             isClearable
             className="w-full sm:max-w-[44%]"
