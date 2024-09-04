@@ -50,6 +50,7 @@ interface UserInterface {
   uc: String,
   planoAdesao: String,
   consumoMedio: number,
+  telefone: String,
 }
 
 const columns = [
@@ -134,12 +135,13 @@ const tarifas = [
 interface UsinaData {
   id: number;
   nome: string;
-  estado: string;
+  localizacao: string;
   potenciaInstalada: number;
   potenciaNominal: number;
   capacidadeGeracao: number;
   capacidadeEmUso: number;
   capacidadeDisponivel: number;
+  usuarioResponsavel: UserInterface;
 }
 
 export default function App() {
@@ -421,8 +423,19 @@ export default function App() {
             </select>
           </label>
         </div>
-        <div className="flex justify-center items-center gap-3 mb-4">
-          <Card>
+
+        <div className="flex gap-x-11 mb-8">
+          <Card className="w-2/6">
+            <CardBody>
+              <h4><strong>Nome Usina:</strong> {dadosUsina?.nome}</h4>
+              <h4><strong>Estado:</strong> {dadosUsina?.localizacao}</h4>
+              <h4><strong>Nome responsável:</strong> {dadosUsina?.usuarioResponsavel.nome}</h4>
+              <h4><strong>E-mail responsável:</strong> {dadosUsina?.usuarioResponsavel.email}</h4>
+              <h4><strong>Telefone responsável:</strong> {dadosUsina?.usuarioResponsavel.telefone }</h4>
+            </CardBody>
+          </Card>
+          <div className="flex  justify-center items-center gap-3">
+            <Card>
             <CardBody className="px-8 py-5">
               <h3 className="text-xl max-w-25 text-center">Capacidade</h3>
               <h3 className="text-xl max-w-26 text-center"> de Geração</h3>
@@ -449,6 +462,9 @@ export default function App() {
               </p>
             </CardBody>
           </Card>
+          
+        </div>
+          
         </div>
       </div>
 
