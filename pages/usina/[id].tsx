@@ -141,6 +141,8 @@ interface UsinaData {
   capacidadeGeracao: number;
   capacidadeEmUso: number;
   capacidadeDisponivel: number;
+  uc: string;
+  tributacao: string;
   usuarioResponsavel: UserInterface;
 }
 
@@ -431,7 +433,9 @@ export default function App() {
               <h4><strong>Estado:</strong> {dadosUsina?.localizacao}</h4>
               <h4><strong>Nome responsável:</strong> {dadosUsina?.usuarioResponsavel.nome}</h4>
               <h4><strong>E-mail responsável:</strong> {dadosUsina?.usuarioResponsavel.email}</h4>
-              <h4><strong>Telefone responsável:</strong> {dadosUsina?.usuarioResponsavel.telefone }</h4>
+              <h4><strong>Telefone responsável:</strong> {dadosUsina?.usuarioResponsavel.telefone}</h4>
+              <h4><strong>UC:</strong> {dadosUsina?.uc}</h4>
+              <h4><strong>Regime Tributário:</strong> {dadosUsina?.tributacao }</h4>
             </CardBody>
           </Card>
           <div className="flex  justify-center items-center gap-3">

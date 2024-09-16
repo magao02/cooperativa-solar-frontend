@@ -16,6 +16,8 @@ import {
   DropdownItem,
   User,
   SortDescriptor,
+  Select,
+  SelectItem,
 
 } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
@@ -34,6 +36,7 @@ import { FaChevronDown } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
 import { deleteUsina, getAllGestorUsersData, getAllUsersData, getAllUsinasData, getUsinaById, updateUsina, usinaCreate } from "../../services/api-usinas";
+import { set } from "zod";
 //Interfaces
 interface UsinaColumn {
   key: string;
@@ -114,6 +117,22 @@ const columns = [
   }
 ];
 
+const tarifas = [
+  {
+    value: "Grupo tarifário B",
+    label: "Grupo tarifário B"
+  },
+  {
+    value: "Grupo tarifário Horo-Sazonal Azul",
+    label: "Grupo tarifário Horo-Sazonal Azul"
+  },
+  {
+    value: "Grupo tarifário Horo-Sazonal Verde",
+    label: "Grupo tarifário Horo-Sazonal Verde"
+  },
+
+
+]
 
 const INITIAL_VISIBLE_COLUMNS = ["nome", "localizacao", "potenciaInstalada", "numeroClientes", "capacidadeClientes", "capacidadeGeracao", "responsavel", "actions"];
 function capitalize(str: string) {
@@ -140,6 +159,8 @@ export default function App() {
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
   const [selectedUsinaId, setSelectedUsinaId] = useState<number | null>(null);
   const [editUsinaModalOpen, setEditUsinaModalOpen] = useState(false);
+  const [tarifaCadastro, setTarifaCadastro] = useState("");
+  const [ucCadastro, setUcCadastro] = useState("");
   const [usinaData, setUsinaData] = useState(null);
 
   type SortDirection = 'ascending' | 'descending';
@@ -298,7 +319,10 @@ export default function App() {
       potenciaInstalada: parseInt(potenciaInstaladaUsina),
       potenciaNominal: parseInt(potenciaNominalUsina),
       capacidadeGeracao: parseInt(capacidadeGeracaoUsina),
+      tributacao: tarifaCadastro,
+      uc: ucCadastro
     };
+    console.log(usinaBody);
 
     try {
       const data = await usinaCreate(usinaBody);
@@ -330,6 +354,10 @@ export default function App() {
     }
   };
 
+  const handleTarifaChange = (value: any) => {
+    setTarifaCadastro(value.target.value);
+  };
+
   useEffect(() => {
     fetchDataUsinas();
   }, []);
@@ -340,6 +368,7 @@ export default function App() {
     setPotenciaInstaladaUsina("");
     setPotenciaNominalUsina("");
     setCapacidadeGeracaoUsina("");
+    setTarifaCadastro("");
   }
   const onRowsPerPageChange = React.useCallback((e: any) => {
     setRowsPerPage(Number(e.target.value));
@@ -396,6 +425,8 @@ export default function App() {
     setVisibleColumns(new Set(keys));
   };
 
+
+
   const renderCell = React.useCallback((usina: Usina, columnKey: string) => {
     
     const cellValue = getKeyValue(usina, columnKey);
@@ -419,9 +450,11 @@ export default function App() {
         );
       case "VagasClientes":
       case "capacidadeClientes":
+        const parsedValue = parseInt(cellValue);
+        const displayValue = isNaN(parsedValue) || cellValue === null ? 'Sem clientes cadastrados' : parsedValue;
         return (
           <div className="flex items-center gap-2">
-            <p className="text-bold text-small capitalize">{parseInt(cellValue)}</p>
+            <p className="text-bold text-small capitalize">{displayValue}</p>
           </div>
         );
       case "actions":
@@ -691,6 +724,25 @@ export default function App() {
                       onValueChange={setCapacidadeGeracaoUsina}
                       variant="bordered"
                     />
+                    <Input
+                      isRequired
+                      label="UC"
+                      value={ucCadastro}
+                      onValueChange={setUcCadastro}
+                      variant="bordered"
+                    />
+
+                    <Select
+                      items={tarifas}
+                      onChange={handleTarifaChange}
+                      label="Tarifa"
+                      placeholder="Selecione uma tarifa"
+
+                    >
+                      {(tarifa) => <SelectItem key={tarifa.value}>{tarifa.label}</SelectItem>}
+                    </Select>
+                    
+
                     <Autocomplete
                       label="Responsável pela usina"
                       defaultItems={users}
@@ -782,6 +834,24 @@ export default function App() {
                       onValueChange={setCapacidadeGeracaoUsina}
                       variant="bordered"
                     />
+
+                     <Input
+                      isRequired
+                      label="UC"
+                      value={ucCadastro}
+                      onValueChange={setUcCadastro}
+                      variant="bordered"
+                    />
+
+                    <Select
+                      items={tarifas}
+                      onChange={handleTarifaChange}
+                      label="Tarifa"
+                      placeholder="Selecione uma tarifa"
+
+                    >
+                      {(tarifa) => <SelectItem key={tarifa.value}>{tarifa.label}</SelectItem>}
+                    </Select>
                     <Autocomplete
                       label="Responsável pela usina"
                       defaultItems={users}
